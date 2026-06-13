@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akshat Sharma Vats | Creative Developer</title>
+    <meta name="description"
+        content="Portfolio showcasing cinematic web experiences with premium motion and visual design.">
+    <link href="https://fonts.googleapis.com/css?family=Fira+Mono|Montserrat:400,700|Roboto+Mono:400,700|Lobster&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=1.6">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/lenis/1.1.5/lenis.min.js"></script>
+</head>
+
+<body>
+    <!-- Premium Visual Overlays -->
+    <div class="grid-overlay"></div>
+    <div class="custom-cursor" id="custom-cursor"></div>
+    <div class="custom-cursor-follower" id="custom-cursor-follower"></div>
+
+    <header class="topbar">
+        <div class="brand">Akshat Sharma Vats</div>
+        <nav class="nav" id="main-nav" aria-label="Primary">
+            <a href="#about">About</a>
+            <a href="#skills">Skills</a>
+            <a href="#projects">Projects</a>
+            <a href="#timeline">Timeline</a>
+            <a href="#contact">Contact</a>
+            <button id="terminal-trigger" class="terminal-btn" aria-label="Open Terminal Console">
+                <span class="term-icon">$_</span> <span class="terminal-btn-text">Console</span>
+            </button>
+        </nav>
+        <!-- Mobile Hamburger -->
+        <button class="hamburger" id="hamburger-btn" aria-label="Toggle mobile menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+    </header>
+    <!-- Mobile Drawer Nav -->
+    <div class="mobile-nav-drawer" id="mobile-nav-drawer" aria-hidden="true">
+        <nav class="mobile-nav-links">
+            <a href="#about" class="mobile-nav-link">About</a>
+            <a href="#skills" class="mobile-nav-link">Skills</a>
+            <a href="#projects" class="mobile-nav-link">Projects</a>
+            <a href="#timeline" class="mobile-nav-link">Timeline</a>
+            <a href="#contact" class="mobile-nav-link">Contact</a>
+            <button id="terminal-trigger-mobile" class="terminal-btn mobile-terminal-btn" aria-label="Open Terminal Console">
+                <span class="term-icon">$_</span> Console
+            </button>
+        </nav>
+    </div>
+
+    <main id="main">
+        <section class="hero-sequence">
+            <div class="hero-shell">
+                <!-- Left Column: Branding and Roles Headings Stack -->
+                <div class="hero-left-col">
+                    <div class="hero-branding">
+                        <p class="eyebrow">Creative Portfolio</p>
+                        <div class="hero-name" aria-label="Akshat Sharma Vats">
+                            <span>Akshat</span>
+                            <span>Sharma Vats</span>
+                        </div>
+                    </div>
+                    <div class="hero-headings-stack">
+                        <div class="hero-heading-item active" data-index="0">Prompt Engineer</div>
+                        <div class="hero-heading-item" data-index="1">Frontend Engineer</div>
+                        <div class="hero-heading-item" data-index="2">Backend Engineer</div>
+                        <div class="hero-heading-item" data-index="3">IoT & Robotics</div>
+                        <div class="hero-heading-item" data-index="4">AWS Server Mgmt</div>
+                        <div class="hero-heading-item" data-index="5">ML Engineer</div>
+                        <div class="hero-heading-item" data-index="6">AI Engineer</div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Canvas + Glass Details Card + Actions -->
+                <div class="hero-right-col">
+                    <div class="hero-right-details">
+                        <!-- Glass Details Card that updates dynamically on scroll -->
+                        <div class="hero-detail-card">
+                            <div class="detail-badge"><span id="detail-number">01</span> / 07</div>
+                            <h2 id="detail-title">ML & AI Enthusiast</h2>
+                            <div class="detail-focus">Focus: <span id="detail-focus-text">Deep Learning & Neural
+                                    Architectures</span></div>
+                            <p id="detail-desc">Developing sophisticated PyTorch models, custom predictive layers, and
+                                optimization pipelines for complex data patterns.</p>
+                        </div>
+
+                        <!-- Action buttons positioned next to details on desktop -->
+                        <div class="hero-actions">
+                            <a class="button primary" href="#projects">View work</a>
+                            <a class="button secondary" href="#contact">Start a project</a>
+                        </div>
+
+                        <!-- Secondary visual indicators -->
+                        <div class="hero-meta-points">
+                            <div class="meta-point">
+                                <strong>100% Polish</strong>
+                                <span>Tuned for visual impact.</span>
+                            </div>
+                            <div class="meta-point">
+                                <strong>Cinematic</strong>
+                                <span>Glow grids, dark modes, and soft lighting.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pinned 3D Canvas character representation -->
+                    <div class="hero-visual-wrapper">
+                        <div class="canvas-frame">
+                            <canvas id="hero-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="content-section section-alt">
+            <div class="section-heading">
+                <p class="eyebrow">About</p>
+                <h2>FULL-STACK DEVELOPER • AI ENTHUSIAST • UI ENGINEER.</h2>
+            </div>
+            <div class="about-grid">
+                <div class="about-copy">
+                    <p>I am a BCA passout with a deep foundational knowledge of computer science hardware and software
+                        systems. I specialize in bridging the gap between hardware telemetry and high-end modern web
+                        applications, combining robust programming concepts with clean, futuristic visual aesthetics.
+                    </p>
+                    <p>My core approach focuses on visual hierarchy, motion pacing, and the smallest details that make a
+                        portfolio feel intentional. The result should land with clarity on first glance and still reveal
+                        more on every scroll.</p>
+                </div>
+                <div class="stats-grid">
+                    <article><strong>03+</strong><span>Years shaping interfaces with visual impact.</span></article>
+                    <article><strong>12</strong><span>Crafted interactions tuned for scroll and hover.</span></article>
+                    <article><strong>24/7</strong><span>Available for high-end portfolio or brand sites.</span>
+                    </article>
+                    <article><strong>100%</strong><span>Focused on polish, clarity, and premium feel.</span></article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Creative Radial Skills Section -->
+        <section id="skills" class="skills-section">
+            <div class="section-heading">
+                <p class="eyebrow">Skills Matrix</p>
+                <h2>Technologies I build with — every day.</h2>
+            </div>
+
+            <!-- Filter Tab Row -->
+            <div class="skills-filter-tabs" id="skills-filter-tabs">
+                <button class="skill-tab active" data-filter="all">All</button>
+                <button class="skill-tab" data-filter="web">Web</button>
+                <button class="skill-tab" data-filter="mern">MERN</button>
+                <button class="skill-tab" data-filter="mobile">Mobile</button>
+                <button class="skill-tab" data-filter="ai">AI / ML</button>
+                <button class="skill-tab" data-filter="backend">Backend</button>
+                <button class="skill-tab" data-filter="iot">IoT & Robotics</button>
+            </div>
+
+            <!-- Skill Orb Grid — SVG circular progress rings -->
+            <div class="skills-orb-grid" id="skills-orb-grid">
+
+                <!-- WEB -->
+                <div class="skill-orb" data-cat="web"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="97"/></svg><div class="skill-orb-icon">🌐</div></div><p class="skill-orb-name">HTML5</p><span class="skill-orb-pct">97%</span></div>
+                <div class="skill-orb" data-cat="web"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="95"/></svg><div class="skill-orb-icon">🎨</div></div><p class="skill-orb-name">CSS3</p><span class="skill-orb-pct">95%</span></div>
+                <div class="skill-orb" data-cat="web"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="93"/></svg><div class="skill-orb-icon">⚡</div></div><p class="skill-orb-name">JavaScript</p><span class="skill-orb-pct">93%</span></div>
+                <div class="skill-orb" data-cat="web"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="90"/></svg><div class="skill-orb-icon">🌀</div></div><p class="skill-orb-name">GSAP</p><span class="skill-orb-pct">90%</span></div>
+                <div class="skill-orb" data-cat="web"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="85"/></svg><div class="skill-orb-icon">🎲</div></div><p class="skill-orb-name">Three.js</p><span class="skill-orb-pct">85%</span></div>
+                <div class="skill-orb" data-cat="web"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="88"/></svg><div class="skill-orb-icon">💅</div></div><p class="skill-orb-name">Tailwind</p><span class="skill-orb-pct">88%</span></div>
+
+                <!-- MERN -->
+                <div class="skill-orb" data-cat="mern"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="92"/></svg><div class="skill-orb-icon">⚛️</div></div><p class="skill-orb-name">React.js</p><span class="skill-orb-pct">92%</span></div>
+                <div class="skill-orb" data-cat="mern"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="90"/></svg><div class="skill-orb-icon">🟢</div></div><p class="skill-orb-name">Node.js</p><span class="skill-orb-pct">90%</span></div>
+                <div class="skill-orb" data-cat="mern"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="88"/></svg><div class="skill-orb-icon">🍃</div></div><p class="skill-orb-name">MongoDB</p><span class="skill-orb-pct">88%</span></div>
+                <div class="skill-orb" data-cat="mern"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="87"/></svg><div class="skill-orb-icon">🚂</div></div><p class="skill-orb-name">Express.js</p><span class="skill-orb-pct">87%</span></div>
+                <div class="skill-orb" data-cat="mern"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="85"/></svg><div class="skill-orb-icon">🔌</div></div><p class="skill-orb-name">Socket.io</p><span class="skill-orb-pct">85%</span></div>
+
+                <!-- MOBILE -->
+                <div class="skill-orb" data-cat="mobile"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="87"/></svg><div class="skill-orb-icon">📱</div></div><p class="skill-orb-name">React Native</p><span class="skill-orb-pct">87%</span></div>
+                <div class="skill-orb" data-cat="mobile"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="85"/></svg><div class="skill-orb-icon">🚀</div></div><p class="skill-orb-name">Expo</p><span class="skill-orb-pct">85%</span></div>
+                <div class="skill-orb" data-cat="mobile"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="82"/></svg><div class="skill-orb-icon">🍎</div></div><p class="skill-orb-name">iOS / Android</p><span class="skill-orb-pct">82%</span></div>
+
+                <!-- AI / ML -->
+                <div class="skill-orb" data-cat="ai"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="95"/></svg><div class="skill-orb-icon">🧠</div></div><p class="skill-orb-name">Prompt Eng.</p><span class="skill-orb-pct">95%</span></div>
+                <div class="skill-orb" data-cat="ai"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="92"/></svg><div class="skill-orb-icon">🤖</div></div><p class="skill-orb-name">LLM / RAG</p><span class="skill-orb-pct">92%</span></div>
+                <div class="skill-orb" data-cat="ai"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="90"/></svg><div class="skill-orb-icon">🐍</div></div><p class="skill-orb-name">Python</p><span class="skill-orb-pct">90%</span></div>
+                <div class="skill-orb" data-cat="ai"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="90"/></svg><div class="skill-orb-icon">📊</div></div><p class="skill-orb-name">NumPy/Pandas</p><span class="skill-orb-pct">90%</span></div>
+                <div class="skill-orb" data-cat="ai"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="87"/></svg><div class="skill-orb-icon">📈</div></div><p class="skill-orb-name">Matplotlib</p><span class="skill-orb-pct">87%</span></div>
+                <div class="skill-orb" data-cat="ai"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="85"/></svg><div class="skill-orb-icon">🔥</div></div><p class="skill-orb-name">TensorFlow</p><span class="skill-orb-pct">85%</span></div>
+                <div class="skill-orb" data-cat="ai"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="83"/></svg><div class="skill-orb-icon">🔬</div></div><p class="skill-orb-name">Scikit-Learn</p><span class="skill-orb-pct">83%</span></div>
+
+                <!-- BACKEND -->
+                <div class="skill-orb" data-cat="backend"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="90"/></svg><div class="skill-orb-icon">🐍</div></div><p class="skill-orb-name">Python</p><span class="skill-orb-pct">90%</span></div>
+                <div class="skill-orb" data-cat="backend"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="88"/></svg><div class="skill-orb-icon">🔗</div></div><p class="skill-orb-name">REST / GraphQL</p><span class="skill-orb-pct">88%</span></div>
+                <div class="skill-orb" data-cat="backend"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="86"/></svg><div class="skill-orb-icon">🔑</div></div><p class="skill-orb-name">Firebase</p><span class="skill-orb-pct">86%</span></div>
+                <div class="skill-orb" data-cat="backend"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="84"/></svg><div class="skill-orb-icon">☁️</div></div><p class="skill-orb-name">AWS</p><span class="skill-orb-pct">84%</span></div>
+
+                <!-- IOT -->
+                <div class="skill-orb" data-cat="iot"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="89"/></svg><div class="skill-orb-icon">📡</div></div><p class="skill-orb-name">ESP32</p><span class="skill-orb-pct">89%</span></div>
+                <div class="skill-orb" data-cat="iot"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="87"/></svg><div class="skill-orb-icon">🔧</div></div><p class="skill-orb-name">Arduino</p><span class="skill-orb-pct">87%</span></div>
+                <div class="skill-orb" data-cat="iot"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="91"/></svg><div class="skill-orb-icon">📶</div></div><p class="skill-orb-name">Sensor/MQTT</p><span class="skill-orb-pct">91%</span></div>
+                <div class="skill-orb" data-cat="iot"><div class="skill-orb-ring-wrap"><svg class="skill-svg" viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" data-pct="84"/></svg><div class="skill-orb-icon">🦾</div></div><p class="skill-orb-name">Robotics</p><span class="skill-orb-pct">84%</span></div>
+
+            </div>
+        </section>
+
+        <section id="projects" class="content-section">
+            <div class="section-heading">
+                <p class="eyebrow">Selected Work</p>
+                <h2>Modern projects engineered for performance and usability.</h2>
+            </div>
+
+            <div class="project-3d-wrapper">
+                <div id="project-3d-canvas-container"></div>
+                <div class="project-details-overlay" id="project-details-overlay">
+                    <span class="proj-badge" id="proj-badge">01</span>
+                    <h3 class="proj-title" id="proj-title">Project Name</h3>
+                    <p class="proj-desc" id="proj-desc">Project description goes here...</p>
+                    <button class="proj-link" id="view-details-trigger">View Project Details &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Keep accessible data (visually hidden by default but read by JS) -->
+            <div class="project-grid-accessible" style="display: none;">
+                <article class="project-card-data" data-index="0" data-gradient-a="#ffb347" data-gradient-b="#ff7c57"
+                    data-tech="HTML5, Styled-Components, JavaScript"
+                    data-link="https://akshattermux.github.io/Akshat-Sharma/"
+                    data-features="Fully responsive interface designed with clean typography and grid systems.;Smooth, performance-optimized touch and scroll transitions.;Polished interactive elements with custom hover indicators.">
+                    <h3>Portfolio Website</h3>
+                    <p>A personal portfolio website to showcase my skills, projects, and contact information. Built with HTML, CSS, JavaScript, and Styled-Components.</p>
+                </article>
+                <article class="project-card-data" data-index="1" data-gradient-a="#38d6c7" data-gradient-b="#2c86ff"
+                    data-tech="HTML5, CSS3, SCSS, JavaScript, TypeScript, Redux, Tailwind CSS, Bootstrap"
+                    data-link="https://akshattermux.github.io/IIMT-college-webs/index.html"
+                    data-features="High-end college website featuring structured Home, About, Courses, and Admissions dashboards.;Highly responsive layout with mobile drawer menus and dynamic data binding.;Built using SCSS compiler pipelines and modern framework libraries like Redux.">
+                    <h3>College Website</h3>
+                    <p>A responsive college website featuring home, about, courses, and contact pages. Built with HTML, CSS, and JavaScript.</p>
+                </article>
+                <article class="project-card-data" data-index="2" data-gradient-a="#f7c5ff" data-gradient-b="#ff8f70"
+                    data-tech="HTML5, CSS, SCSS, JavaScript, Bootstrap"
+                    data-link="https://akshattermux.github.io/Velocity-Cars/"
+                    data-features="Responsive service catalog and inline vehicle booking module.;Dynamic hover gallery grids with subtle scaling micro-animations.;Tailored style guidelines and layouts matching modern automotive design languages.">
+                    <h3>Workshop Website</h3>
+                    <p>A dynamic workshop website with service listings, booking form, and responsive design. Built with HTML, CSS, and JavaScript.</p>
+                </article>
+                <article class="project-card-data" data-index="3" data-gradient-a="#6ee7b7" data-gradient-b="#38d6c7"
+                    data-tech="JavaScript, Node.js, Express, Socket.io, Nodemon"
+                    data-link="https://github.com/Akshattermux/Chat-App"
+                    data-features="Bi-directional real-time communication driven by Socket.io engine.;Private messaging rooms and group channel creation triggers.;Robust Express routing backend with Nodemon development synchronization.">
+                    <h3>Chat Application</h3>
+                    <p>Real-time chat app with group and private messaging, built using Socket.io and Express.</p>
+                </article>
+                <article class="project-card-data" data-index="4" data-gradient-a="#ffd166" data-gradient-b="#f97316"
+                    data-tech="JavaScript, HTML, CSS, Redux, Material UI"
+                    data-link="https://akshattermux.github.io/client-Portfolio/"
+                    data-features="Immersive art showcase designed to capture portfolio focus.;Redux state handling for smooth dynamic item loading and page views.;Beautiful styling layouts using Google Material UI design patterns.">
+                    <h3>Client Portfolio</h3>
+                    <p>An elegant art gallery portfolio website showcasing collections, artist profiles, and contact options. Built with HTML, CSS, and JavaScript.</p>
+                </article>
+                <article class="project-card-data" data-index="5" data-gradient-a="#93c5fd" data-gradient-b="#60a5fa"
+                    data-tech="HTML5, CSS3, JavaScript, OpenWeatherMap API"
+                    data-link="https://akshattermux.github.io/weather_Web/"
+                    data-features="Real-time weather telemetry logs synced from global OpenWeather API.;Auto-detect location or query cities with optimized search indexes.;Dynamic visual weather states and climate-responsive color palettes.">
+                    <h3>Weather App</h3>
+                    <p>Displays real-time weather data and forecasts using OpenWeatherMap API. Clean UI and location search.</p>
+                </article>
+                <article class="project-card-data" data-index="6" data-gradient-a="#f472b6" data-gradient-b="#db2777"
+                    data-tech="Python, Pygame, Random, Sys"
+                    data-link="https://github.com/Akshattermux/flapy_bird_game.py"
+                    data-features="60FPS retro arcade physics simulation and gravity rendering.;Custom high-score database files and automatic collision detection grids.;Clean, scalable Python code utilizing modular components.">
+                    <h3>Flappy Bird Game</h3>
+                    <p>A clone of the classic Flappy Bird game built with Python and Pygame. Designed for PC with smooth gameplay, scoring system, and responsive controls.</p>
+                </article>
+                <article class="project-card-data" data-index="7" data-gradient-a="#a78bfa" data-gradient-b="#7c3aed"
+                    data-tech="ESP32, OLED, Sensor Motordriver L293D, WiFi, Arduino C++"
+                    data-link="https://github.com/Akshattermux/EMO_robot"
+                    data-features="Integrated ESP32 microcontroller with OLED micro-expressive animations.;Autonomous driving algorithms using ultrasonic rangefinder obstacle sweeps.;Local Wi-Fi hosting server enabling multi-point telemetry and drive inputs.">
+                    <h3>Robot</h3>
+                    <p>An interactive EMO-inspired robot built with ESP32, featuring Wi-Fi control, autonomous obstacle avoidance, servo-based radar, and an OLED display for expressive faces.</p>
+                </article>
+                <article class="project-card-data" data-index="8" data-gradient-a="#00f2fe" data-gradient-b="#4facfe"
+                    data-tech="React, Node.js, MongoDB, Express, Kotlin, Android SDK, Socket.io"
+                    data-link="https://friendsbook.co.in"
+                    data-features="Cross-platform social networking ecosystem synchronizing Web clients and native Android packages.;Secure, premium JWT-based authentication system managed through the com.friendsbook.auth package.;Dynamic friend feed system, real-time WebSockets notifications, and full profile customization options.">
+                    <h3>FriendsBook</h3>
+                    <p>A premium social platform bridging web environments and native mobile apps, enabling fast and interactive friend discovery, real-time messaging, and secure authentication.</p>
+                </article>
+                <article class="project-card-data" data-index="9" data-gradient-a="#ec4899" data-gradient-b="#8b5cf6"
+                    data-tech="React Native, Expo, expo-router, expo-image, Native StyleSheet"
+                    data-link="https://github.com/Akshattermux/Skrillz"
+                    data-features="Intelligent Onboarding & Interactive Intro UI directing users smoothly into the ecosystem.;Dynamic Dashboard with medical category groupings (General, Cardiology, Dental, Neurology).;Rich Specialist Profiles featuring slot booking management and consultation logs.;🎓 Engaging Course Discovery player tracking syllabus checkpoints, lesson resources, and cohort progress.">
+                    <h3>Skrillz</h3>
+                    <p>A premium React Native & Expo-powered iOS and Android frontend for Telehealth consultations, combined with an integrated interactive cohort learning & skilling ecosystem.</p>
+                </article>
+            </div>
+
+            <!-- Premium Glassmorphic Project Details Modal Card System -->
+            <div class="project-modal" id="project-details-modal">
+                <div class="project-modal-backdrop" id="modal-backdrop"></div>
+                <div class="project-modal-card">
+                    <button class="project-modal-close" id="project-modal-close-btn">&times;</button>
+                    <div class="project-modal-header" id="modal-header-gradient">
+                        <span class="project-modal-badge" id="modal-badge">Project 01</span>
+                    </div>
+                    <div class="project-modal-body">
+                        <h3 class="project-modal-title" id="modal-title">Project Title</h3>
+                        <p class="project-modal-desc" id="modal-desc">Project details go here...</p>
+
+                        <div class="project-modal-section">
+                            <h4>Visual Showcase Gallery</h4>
+                            <div class="project-modal-gallery" id="modal-gallery">
+                                <!-- Filled dynamically by JS with dynamic fallbacks -->
+                            </div>
+                        </div>
+
+                        <div class="project-modal-section">
+                            <h4>Key Capabilities & Deliverables</h4>
+                            <ul class="project-modal-features" id="modal-features">
+                                <!-- Filled dynamically by JS -->
+                            </ul>
+                        </div>
+
+                        <div class="project-modal-section">
+                            <h4>Tech Stack</h4>
+                            <div class="project-modal-tech" id="modal-tech">
+                                <!-- Filled dynamically by JS -->
+                            </div>
+                        </div>
+
+                        <div class="project-modal-actions">
+                            <a href="#" target="_blank" class="button primary" id="modal-action-btn">Open Project
+                                Normally &nearr;</a>
+                            <button class="button secondary" id="project-modal-close-action">Close Window</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="timeline" class="content-section section-alt">
+            <div class="section-heading">
+                <p class="eyebrow">Process</p>
+                <h2>A structured process from concept to execution.</h2>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div>
+                        <h3>Direction</h3>
+                        <p class="timeline-meta">Visual system, composition, and motion language.</p>
+                        <p>We define the visual tone, establish hero impact, and decide how the page should move through
+                            scroll.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div>
+                        <h3>Build</h3>
+                        <p class="timeline-meta">Responsive layout, canvas sequence, and motion polish.</p>
+                        <p>The canvas sequence, top light, and restrained overlays work together to create depth without
+                            clutter.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div>
+                        <h3>Delivery</h3>
+                        <p class="timeline-meta">Performance, clarity, and final premium pass.</p>
+                        <p>The end result is tuned to feel fast, refined, and memorable even before the user reaches the
+                            footer.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="content-section contact-section">
+            <div class="section-heading">
+                <p class="eyebrow">Contact</p>
+                <h2>Available for freelance, collaborations, and creative development.</h2>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-copy">
+                    <p>Feel free to reach out for high-end web development, IoT telemetry integrations, or custom
+                        hardware/software collaborations. I'm always available to build premium digital experiences.</p>
+                    <div class="contact-info-list">
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <a href="mailto:akshatsharma5645@gmail.com"
+                                class="info-value">akshatsharma5645@gmail.com</a>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Phone</span>
+                            <a href="tel:+918979995507" class="info-value">+91 89799 95507</a>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">GitHub</span>
+                            <a href="https://github.com/Akshattermux" target="_blank" rel="noopener noreferrer" class="info-value">Akshattermux</a>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Instagram</span>
+                            <a href="https://instagram.com/akshat.sharma.vats" target="_blank" rel="noopener noreferrer" class="info-value">akshat.sharma.vats</a>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Address</span>
+                            <span class="info-value">Rampur Maniharan, Saharanpur, UP - 247451</span>
+                        </div>
+                    </div>
+                    <div class="contact-links" style="margin-top: 2rem;">
+                        <a href="#main" class="button secondary mini">Back to top &uarr;</a>
+                    </div>
+                </div>
+                <form class="contact-form" action="https://formsubmit.co/ajax/akshatsharma5645@gmail.com" method="POST">
+                    <!-- Spam Protection -->
+                    <input type="text" name="_honey" style="display:none">
+                    <!-- Custom Template Styling -->
+                    <input type="hidden" name="_template" value="table">
+
+                    <input type="text" name="name" placeholder="Your name" required>
+                    <input type="email" name="email" placeholder="Email address" required>
+                    <textarea name="message" rows="5" placeholder="Tell me about the project" required></textarea>
+                    <button class="button primary" type="submit">Send message</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Interactive AkshatOS CLI Terminal Console Overlay -->
+    <div class="terminal-overlay" id="terminal-overlay" role="dialog" aria-modal="true" aria-label="AkshatOS Terminal Console">
+        <div class="terminal-container" style="position: relative;">
+            <!-- Custom dynamic canvas view overlay inside console -->
+            <div class="terminal-canvas-view" id="terminal-canvas-view">
+                <canvas id="terminal-game-canvas"></canvas>
+                <div class="exit-help" id="terminal-canvas-exit-hint">Press [ESC] or type 'exit' to terminate visual stream</div>
+                <button class="mobile-exit-btn" id="mobile-canvas-exit">&times; Exit</button>
+                <div class="mobile-snake-controls" id="mobile-snake-controls">
+                    <button class="snake-ctrl-btn up" data-dir="up">&#9650;</button>
+                    <div class="snake-ctrl-row">
+                        <button class="snake-ctrl-btn left" data-dir="left">&#9664;</button>
+                        <button class="snake-ctrl-btn down" data-dir="down">&#9660;</button>
+                        <button class="snake-ctrl-btn right" data-dir="right">&#9654;</button>
+                    </div>
+                </div>
+            </div>
+            <div class="terminal-header">
+                <div class="terminal-controls">
+                    <span class="control-dot close"></span>
+                    <span class="control-dot minimize"></span>
+                    <span class="control-dot maximize"></span>
+                </div>
+                <div class="terminal-title">akshatsharma@akshatos:~</div>
+                <button class="terminal-close-btn" id="terminal-close-x" aria-label="Close Terminal">&times;</button>
+            </div>
+            <div class="terminal-body" id="terminal-body">
+                <div class="terminal-output" id="terminal-output">
+                    <p class="term-line welcome-msg">AkshatOS v1.8.2-LTS (x86_64-pc-linux-gnu)</p>
+                    <p class="term-line welcome-msg">Welcome to Akshat Sharma Vats's Cybernetic Console.</p>
+                    <p class="term-line welcome-msg">Type <span class="term-highlight">help</span> to view available commands, or press <kbd>`</kbd> (Backtick) to toggle.</p>
+                    <br>
+                </div>
+                <div class="terminal-input-row">
+                    <span class="terminal-prompt"><span class="prompt-arrow">➜</span> <span class="prompt-dir">~</span> <span class="prompt-user">[akshat.os]</span> <span class="prompt-char">›</span></span>
+                    <input type="text" id="terminal-input" autocomplete="off" spellcheck="false" aria-label="Terminal Input">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matrix Rain Canvas for the 'matrix'/'hack' command -->
+    <canvas id="matrix-canvas" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; pointer-events:auto; background: #000;"></canvas>
+    <div id="matrix-exit-hint" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:10000; color:#0f0; font-family:'Courier New', monospace; font-size:14px; text-shadow:0 0 5px #0f0; pointer-events:none; background:rgba(0,0,0,0.7); padding:5px 15px; border-radius:5px; text-align:center;">Press [ESC], type 'exit', or Tap to terminate decryption stream</div>
+
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js?v=1.6"></script>
+</body>
+
+</html>

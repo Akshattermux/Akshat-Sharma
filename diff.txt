@@ -1,0 +1,2102 @@
+﻿diff --git a/script.js b/script.js
+index 52b3f4b..fa3f2fe 100644
+--- a/script.js
++++ b/script.js
+@@ -1,445 +1,1679 @@
+-function locomotive() {
++document.addEventListener('DOMContentLoaded', () => {
++  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
++    console.warn('GSAP or ScrollTrigger not loaded');
++    return;
++  }
++
+   gsap.registerPlugin(ScrollTrigger);
+ 
+-  const locoScroll = new LocomotiveScroll({
+-    el: document.querySelector("#main"),
+-    smooth: true ,
+-  });
+-  locoScroll.on("scroll", ScrollTrigger.update);
++  // --- Cinematic Eased Smooth Scroll (Lenis) ---
++  let lenisInstance = null;
++  if (typeof Lenis !== 'undefined') {
++    lenisInstance = new Lenis({
++      duration: 1.3,
++      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Premium exponential scroll easing
++      orientation: 'vertical',
++      gestureOrientation: 'vertical',
++      smoothWheel: true,
++      smoothTouch: false,
++      wheelMultiplier: 1.02
++    });
++
++    // Sync Lenis with GSAP ScrollTrigger
++    lenisInstance.on('scroll', ScrollTrigger.update);
++    gsap.ticker.add((time) => {
++      lenisInstance.raf(time * 1000);
++    });
++    gsap.ticker.lagSmoothing(0);
++  }
++
++  // --- Dynamic Frosted Glass Custom Cursor ---
++  const cursor = document.getElementById('custom-cursor');
++  const follower = document.getElementById('custom-cursor-follower');
++
++  if (cursor && follower) {
++    let cursorPos = { x: 0, y: 0 };
++
++    window.addEventListener('mousemove', (e) => {
++      cursorPos.x = e.clientX;
++      cursorPos.y = e.clientY;
++
++      // Dot follows immediately
++      gsap.to(cursor, {
++        x: cursorPos.x,
++        y: cursorPos.y,
++        duration: 0.04,
++        overwrite: 'auto'
++      });
++
++      // Follower follows with elegant drag delay
++      gsap.to(follower, {
++        x: cursorPos.x,
++        y: cursorPos.y,
++        duration: 0.32,
++        ease: 'power2.out',
++        overwrite: 'auto'
++      });
++    });
++
++    // Hover elements triggers cursor expand and color change
++    const updateHoverEvents = () => {
++      const hoverables = document.querySelectorAll('a, button, input, textarea, select, .button, .timeline-dot');
++      hoverables.forEach((el) => {
++        // Avoid duplicate triggers
++        el.removeEventListener('mouseenter', addCursorHover);
++        el.removeEventListener('mouseleave', removeCursorHover);
++        
++        el.addEventListener('mouseenter', addCursorHover);
++        el.addEventListener('mouseleave', removeCursorHover);
++      });
++    };
++
++    function addCursorHover() {
++      cursor.classList.add('hovering');
++      follower.classList.add('hovering');
++    }
++
++    function removeCursorHover() {
++      cursor.classList.remove('hovering');
++      follower.classList.remove('hovering');
++    }
++
++    updateHoverEvents();
++
++    // 3D Card Showcase Cursor State
++    const container3D = document.querySelector('.project-3d-wrapper');
++    if (container3D) {
++      container3D.addEventListener('mouseenter', () => {
++        follower.classList.add('viewing-3d');
++      });
++      container3D.addEventListener('mouseleave', () => {
++        follower.classList.remove('viewing-3d');
++      });
++    }
++
++    // Observe page mutations to automatically apply hover logic to newly loaded elements
++    const observer = new MutationObserver(updateHoverEvents);
++    observer.observe(document.body, { childList: true, subtree: true });
++  }
++
++  // --- Header Pill Scroll Morph ---
++  const topbar = document.querySelector('.topbar');
++  if (topbar) {
++    const handleHeaderScroll = () => {
++      if (window.scrollY > 60) {
++        topbar.classList.add('topbar-shrunk');
++      } else {
++        topbar.classList.remove('topbar-shrunk');
++      }
++    };
++    window.addEventListener('scroll', handleHeaderScroll, { passive: true });
++    handleHeaderScroll();
++  }
++
++  // --- Smooth Scroll to Anchor Sections (Lenis Synchronized) ---
++  const setupNavAnchorScroll = () => {
++    const navLinks = document.querySelectorAll('.nav a[href^="#"]');
++    navLinks.forEach((link) => {
++      link.addEventListener('click', (e) => {
++        const targetId = link.getAttribute('href');
++        if (targetId === '#') return;
++        const targetSection = document.querySelector(targetId);
++        if (targetSection) {
++          e.preventDefault();
++          if (lenisInstance) {
++            // Scroll to the target element with offset matching shrunk navbar height
++            lenisInstance.scrollTo(targetSection, {
++              duration: 1.25,
++              offset: -75,
++              easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
++            });
++          } else {
++            targetSection.scrollIntoView({ behavior: 'smooth' });
++          }
++        }
++      });
++    });
++  };
++  setupNavAnchorScroll();
++
++  // --- GSAP ScrollTrigger ScrollSpy Active Highlighting ---
++  const setupScrollSpy = () => {
++    const sections = ['about', 'projects', 'timeline', 'contact'];
++    sections.forEach((id) => {
++      const sectionEl = document.getElementById(id);
++      const linkEl = document.querySelector(`.nav a[href="#${id}"]`);
++      if (sectionEl && linkEl) {
++        ScrollTrigger.create({
++          trigger: sectionEl,
++          start: 'top 50%',
++          end: 'bottom 50%',
++          onToggle: (self) => {
++            if (self.isActive) {
++              linkEl.classList.add('active');
++            } else {
++              linkEl.classList.remove('active');
++            }
++          }
++        });
++      }
++    });
++  };
++  setupScrollSpy();
++
++  // --- Tactile Magnetic Physics on Hover ---
++  const applyMagneticHover = () => {
++    const magneticItems = document.querySelectorAll('.button, .nav a, .proj-link');
++    magneticItems.forEach((item) => {
++      item.addEventListener('mousemove', (e) => {
++        const rect = item.getBoundingClientRect();
++        // Calculate offset from center of button
++        const x = e.clientX - rect.left - rect.width / 2;
++        const y = e.clientY - rect.top - rect.height / 2;
++
++        gsap.to(item, {
++          x: x * 0.32,
++          y: y * 0.32,
++          duration: 0.35,
++          ease: 'power2.out',
++          overwrite: 'auto'
++        });
++      });
++
++      item.addEventListener('mouseleave', () => {
++        gsap.to(item, {
++          x: 0,
++          y: 0,
++          duration: 0.65,
++          ease: 'elastic.out(1.1, 0.48)',
++          overwrite: 'auto'
++        });
++      });
++    });
++  };
++  applyMagneticHover();
++
++  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
++
+ 
+-  ScrollTrigger.scrollerProxy("#main", {
+-    scrollTop(value) {
+-      return arguments.length
+-        ? locoScroll.scrollTo(value, 0, 0)
+-        : locoScroll.scroll.instance.scroll.y;
++
++  // Canvas animation setup
++  const canvas = document.getElementById('hero-canvas');
++  const detailNum = document.getElementById('detail-number');
++  const detailTitle = document.getElementById('detail-title');
++  const detailFocusText = document.getElementById('detail-focus-text');
++  const detailDesc = document.getElementById('detail-desc');
++  const detailCard = document.querySelector('.hero-detail-card');
++
++  const frameCount = 120;
++  const images = [];
++  const sequence = { frame: 0, target: 0 };
++  let rafId = null;
++  let isReady = false;
++  let imageLoadCount = 0;
++  let resizeTimeoutId = null;
++
++  const rolesData = [
++    {
++      title: 'Prompt Engineer & Architect',
++      focus: 'LLM Orchestration & Context Design',
++      desc: 'Structuring optimized context windows, refining system prompts, and architecting robust vector-database RAG integrations.',
++      label: '01'
++    },
++    {
++      title: 'Creative Frontend Developer',
++      focus: 'Three.js 3D & Premium Motion UI',
++      desc: 'Crafting immersive WebGL graphics, custom canvas engines, and physics-based GSAP scroll experiences that feel expensive.',
++      label: '02'
++    },
++    {
++      title: 'Scalable Backend Engineer',
++      focus: 'Go, Node, & Distributed Systems',
++      desc: 'Architecting high-concurrency APIs, microservices architectures, and highly optimized database querying and caching layers.',
++      label: '03'
++    },
++    {
++      title: 'IoT Web Developer',
++      focus: 'Smart Telemetry & Hardware Nodes',
++      desc: 'Connecting cyber-physical devices, hardware integrations, microcontrollers, and real-time remote WebSocket controls.',
++      label: '04'
++    },
++    {
++      title: 'AWS & Cloud Architect',
++      focus: 'DigitalOcean, Cloud Nodes & Robotics',
++      desc: 'Deploying high-availability secure cloud systems, serverless functions, and connecting them to autonomous robotic configurations.',
++      label: '05'
+     },
++    {
++      title: 'ML & AI Enthusiast',
++      focus: 'Deep Learning & Neural Architectures',
++      desc: 'Developing sophisticated PyTorch models, custom predictive layers, and optimization pipelines for complex data patterns.',
++      label: '06'
++    },
++    {
++      title: 'Cognitive AI Specialist',
++      focus: 'Agentic Workflows & NLP',
++      desc: 'Engineering autonomous cognitive agents, multi-model orchestrations, and advanced semantic understanding protocols.',
++      label: '07'
++    }
++  ];
++
++  let lastActiveIndex = -1;
++
++  function updateFrameCopy(frameIndex) {
++    // 7 segments for 120 frames
++    const activeIndex = Math.min(6, Math.floor(frameIndex / (120 / 7)));
+ 
+-    getBoundingClientRect() {
++    if (activeIndex !== lastActiveIndex) {
++      lastActiveIndex = activeIndex;
++      const currentRole = rolesData[activeIndex];
++
++      // Highlight active heading on the left
++      const headingItems = document.querySelectorAll('.hero-heading-item');
++      headingItems.forEach((item, idx) => {
++        if (idx === activeIndex) {
++          item.classList.add('active');
++        } else {
++          item.classList.remove('active');
++        }
++      });
++
++      // Update right-side glass details card with smooth GSAP transition
++      if (detailCard) {
++        gsap.to(detailCard, {
++          opacity: 0.28,
++          y: -8,
++          duration: 0.16,
++          ease: 'power2.inOut',
++          onComplete: () => {
++            if (detailNum) detailNum.textContent = currentRole.label;
++            if (detailTitle) detailTitle.textContent = currentRole.title;
++            if (detailFocusText) detailFocusText.textContent = currentRole.focus;
++            if (detailDesc) detailDesc.textContent = currentRole.desc;
++            
++            gsap.to(detailCard, {
++              opacity: 1,
++              y: 0,
++              duration: 0.26,
++              ease: 'power2.out'
++            });
++          }
++        });
++      }
++    }
++  }
++
++  // Add click handlers to left-side headings to scrub to their respective stages
++  setTimeout(() => {
++    const headingItems = document.querySelectorAll('.hero-heading-item');
++    const heroSection = document.querySelector('.hero-sequence');
++    
++    if (headingItems.length > 0 && heroSection) {
++      headingItems.forEach((item) => {
++        item.addEventListener('click', () => {
++          const index = parseInt(item.getAttribute('data-index'));
++          
++          // Calculate the target scroll position within the hero sequence
++          const startScroll = heroSection.offsetTop;
++          const totalScroll = heroSection.offsetHeight - window.innerHeight;
++          // Calculate target progress from 0.0 to 1.0 (spaced across index 0 to 6)
++          const targetProgress = index / 6; 
++          const targetScrollPos = startScroll + (targetProgress * totalScroll);
++
++          if (lenisInstance) {
++            lenisInstance.scrollTo(targetScrollPos, {
++              duration: 1.5,
++              easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
++            });
++          } else {
++            window.scrollTo({
++              top: targetScrollPos,
++              behavior: 'smooth'
++            });
++          }
++        });
++      });
++    }
++  }, 1000);
++
++  function setupCanvas() {
++    if (!canvas) return null;
++
++    const context = canvas.getContext('2d');
++    if (!context) return null;
++
++    const getCanvasSize = () => {
++      const bounds = canvas.getBoundingClientRect();
+       return {
+-        top: 0,
+-        left: 0,
+-        width: window.innerWidth,
+-        height: window.innerHeight,
++        width: bounds.width || window.innerWidth,
++        height: bounds.height || window.innerHeight
+       };
+-    },
++    };
++
++    const resizeCanvas = () => {
++      const dpr = Math.min(window.devicePixelRatio || 1, 2);
++      const { width, height } = getCanvasSize();
++      canvas.width = Math.round(width * dpr);
++      canvas.height = Math.round(height * dpr);
++      canvas.style.width = '100%';
++      canvas.style.height = '100%';
++      context.setTransform(dpr, 0, 0, dpr, 0, 0);
++      drawFrame();
++      ScrollTrigger.refresh();
++    };
++
++    const drawCover = (image, alpha = 1) => {
++      const { width: canvasWidth, height: canvasHeight } = getCanvasSize();
++
++      context.clearRect(0, 0, canvasWidth, canvasHeight);
++      context.fillStyle = '#02050b';
++      context.fillRect(0, 0, canvasWidth, canvasHeight);
++
++      const drawFallback = () => {
++        const gradient = context.createLinearGradient(0, 0, canvasWidth, canvasHeight);
++        gradient.addColorStop(0, '#10213b');
++        gradient.addColorStop(0.5, '#07111f');
++        gradient.addColorStop(1, '#02050b');
++        context.fillStyle = gradient;
++        context.fillRect(0, 0, canvasWidth, canvasHeight);
++
++        context.fillStyle = 'rgba(255, 179, 71, 0.14)';
++        context.beginPath();
++        context.arc(canvasWidth * 0.68, canvasHeight * 0.28, Math.min(canvasWidth, canvasHeight) * 0.22, 0, Math.PI * 2);
++        context.fill();
++
++        context.fillStyle = 'rgba(56, 214, 199, 0.12)';
++        context.beginPath();
++        context.arc(canvasWidth * 0.3, canvasHeight * 0.72, Math.min(canvasWidth, canvasHeight) * 0.18, 0, Math.PI * 2);
++        context.fill();
++      };
++
++      if (!image || !image.complete || !image.naturalWidth) {
++        drawFallback();
++        return;
++      }
++
++      try {
++        const horizontalRatio = canvasWidth / image.naturalWidth;
++        const verticalRatio = canvasHeight / image.naturalHeight;
++        const ratio = Math.min(horizontalRatio, verticalRatio);
++        const drawWidth = image.naturalWidth * ratio;
++        const drawHeight = image.naturalHeight * ratio;
++        const offsetX = (canvasWidth - drawWidth) / 2;
++        const offsetY = (canvasHeight - drawHeight) / 2;
++
++        context.globalAlpha = alpha;
++        context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
++        context.globalAlpha = 1;
++
++        const vignette = context.createRadialGradient(
++          canvasWidth * 0.5, canvasHeight * 0.42, Math.min(canvasWidth, canvasHeight) * 0.12,
++          canvasWidth * 0.5, canvasHeight * 0.42, Math.min(canvasWidth, canvasHeight) * 0.82
++        );
++        vignette.addColorStop(0, 'rgba(255, 255, 255, 0.03)');
++        vignette.addColorStop(0.4, 'rgba(7, 17, 31, 0.06)');
++        vignette.addColorStop(1, 'rgba(2, 5, 11, 0.64)');
++        context.fillStyle = vignette;
++        context.fillRect(0, 0, canvasWidth, canvasHeight);
++
++        const rim = context.createLinearGradient(0, 0, canvasWidth, 0);
++        rim.addColorStop(0, 'rgba(56, 214, 199, 0.02)');
++        rim.addColorStop(0.5, 'rgba(255, 255, 255, 0.015)');
++        rim.addColorStop(1, 'rgba(255, 179, 71, 0.03)');
++        context.fillStyle = rim;
++        context.fillRect(0, 0, canvasWidth, canvasHeight);
++      } catch (error) {
++        console.error('Canvas draw error:', error);
++        drawFallback();
++      }
++    };
++
++    function drawFrame() {
++      const currentIndex = Math.max(0, Math.min(frameCount - 1, Math.round(sequence.frame)));
++      const currentImage = images[currentIndex];
++      if (!currentImage) return;
++
++      drawCover(currentImage);
++      updateFrameCopy(currentIndex);
++    }
++
++    function setTargetFrame(nextFrame) {
++      sequence.frame = Math.max(0, Math.min(frameCount - 1, nextFrame));
++      drawFrame();
++    }
++
++    resizeCanvas();
++    window.addEventListener('resize', () => {
++      if (resizeTimeoutId) clearTimeout(resizeTimeoutId);
++      resizeTimeoutId = setTimeout(resizeCanvas, 120);
++    }, { passive: true });
++
++    // Load images
++    for (let index = 0; index < frameCount; index += 1) {
++      const image = new Image();
++      image.decoding = 'async';
++      image.src = `./${index + 1}.png`;
++      image.onerror = () => console.warn(`Failed to load image: ${index + 1}.png`);
++      images.push(image);
++    }
++
++    const firstLoaded = () => {
++      imageLoadCount += 1;
++      if (!isReady && imageLoadCount >= 2) {
++        isReady = true;
++        drawFrame();
++        // Initialize scroll trigger once canvas sequence is ready
++        try { initHeroScrollTrigger(); } catch (e) { /* ignore */ }
++      }
++    };
++
++    images.forEach((image) => {
++      image.addEventListener('load', firstLoaded, { once: true });
++    });
+ 
+-    pinType: document.querySelector("#main").style.transform
+-      ? "transform"
+-      : "fixed",
++    // Wait for first image
++    const waitForFirstImage = () => {
++      if (images[0] && images[0].complete && images[0].naturalWidth) {
++        isReady = true;
++        drawFrame();
++        try { initHeroScrollTrigger(); } catch (e) { /* ignore */ }
++      } else {
++        setTimeout(waitForFirstImage, 50);
++      }
++    };
++
++    waitForFirstImage();
++
++    // ScrollTrigger setup - initialize only after canvas sequence is ready
++    const heroSection = document.querySelector('.hero-sequence');
++    let heroScrollInit = false;
++    function initHeroScrollTrigger() {
++      if (heroScrollInit || !heroSection) return;
++      heroScrollInit = true;
++
++      ScrollTrigger.create({
++        trigger: heroSection,
++        start: 'top top',
++        end: 'bottom bottom',
++        scrub: 0.18,
++        invalidateOnRefresh: true,
++        fastScrollEnd: true,
++        pin: '.hero-shell',
++        anticipatePin: 1,
++        onUpdate: (self) => {
++          setTargetFrame(Math.round(self.progress * (frameCount - 1)));
++        }
++      });
++    }
++  }
++
++  setupCanvas();
++
++  // Smooth scroll for anchor links
++  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
++    anchor.addEventListener('click', (event) => {
++      const targetId = anchor.getAttribute('href');
++      const target = document.querySelector(targetId);
++      if (!target) return;
++
++      event.preventDefault();
++      if (lenisInstance) {
++        lenisInstance.scrollTo(target, {
++          offset: 0,
++          duration: 1.5,
++          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
++        });
++      } else {
++        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
++      }
++    });
+   });
+-  ScrollTrigger.addEventListener("refresh", () => locoScroll.update());
+-  ScrollTrigger.refresh();
+-}
+-locomotive();
+ 
++  // Contact form submission with AJAX and premium feedback
++  const contactForm = document.querySelector('.contact-form');
++  if (contactForm) {
++    contactForm.addEventListener('submit', (event) => {
++      event.preventDefault();
++      
++      const submitBtn = contactForm.querySelector('button[type="submit"]');
++      const originalText = submitBtn.textContent;
++      submitBtn.textContent = 'Sending...';
++      submitBtn.disabled = true;
+ 
+-const canvas = document.querySelector("canvas");
+-const context = canvas.getContext("2d");
++      const formData = new FormData(contactForm);
++      const dataObj = {};
++      formData.forEach((value, key) => {
++        dataObj[key] = value;
++      });
+ 
+-canvas.width = window.innerWidth;
+-canvas.height = window.innerHeight;
++      fetch('https://formsubmit.co/ajax/akshatsharma5645@gmail.com', {
++        method: 'POST',
++        headers: {
++          'Content-Type': 'application/json',
++          'Accept': 'application/json'
++        },
++        body: JSON.stringify(dataObj)
++      })
++      .then(response => response.json())
++      .then(data => {
++        submitBtn.textContent = 'Message Sent!';
++        contactForm.reset();
++        
++        // Show premium custom success toast
++        showToast('Message sent successfully! I will get back to you soon.', 'success');
++        
++        setTimeout(() => {
++          submitBtn.textContent = originalText;
++          submitBtn.disabled = false;
++        }, 3000);
++      })
++      .catch(error => {
++        console.error('Error submitting form:', error);
++        submitBtn.textContent = 'Error!';
++        showToast('Oops! Something went wrong. Please try again.', 'error');
++        
++        setTimeout(() => {
++          submitBtn.textContent = originalText;
++          submitBtn.disabled = false;
++        }, 3000);
++      });
++    });
++  }
+ 
++  // --- Three.js 3D Projects Showcase ---
++  function init3DProjects() {
++    const container = document.getElementById('project-3d-canvas-container');
++    if (!container || typeof THREE === 'undefined') {
++      console.warn('Three.js not loaded or container not found');
++      return;
++    }
+ 
+-window.addEventListener("resize", function () {
+-  canvas.width = window.innerWidth;
+-  canvas.height = window.innerHeight;
+-  render();
+-});
++    const overlay = document.getElementById('project-details-overlay');
++    const badgeEl = document.getElementById('proj-badge');
++    const titleEl = document.getElementById('proj-title');
++    const descEl = document.getElementById('proj-desc');
+ 
+-function files(index) {
+-  var data = `
+-     ./male0001.png
+-     ./male0002.png
+-     ./male0003.png
+-     ./male0004.png
+-     ./male0005.png
+-     ./male0006.png
+-     ./male0007.png
+-     ./male0008.png
+-     ./male0009.png
+-     ./male0010.png
+-     ./male0011.png
+-     ./male0012.png
+-     ./male0013.png
+-     ./male0014.png
+-     ./male0015.png
+-     ./male0016.png
+-     ./male0017.png
+-     ./male0018.png
+-     ./male0019.png
+-     ./male0020.png
+-     ./male0021.png
+-     ./male0022.png
+-     ./male0023.png
+-     ./male0024.png
+-     ./male0025.png
+-     ./male0026.png
+-     ./male0027.png
+-     ./male0028.png
+-     ./male0029.png
+-     ./male0030.png
+-     ./male0031.png
+-     ./male0032.png
+-     ./male0033.png
+-     ./male0034.png
+-     ./male0035.png
+-     ./male0036.png
+-     ./male0037.png
+-     ./male0038.png
+-     ./male0039.png
+-     ./male0040.png
+-     ./male0041.png
+-     ./male0042.png
+-     ./male0043.png
+-     ./male0044.png
+-     ./male0045.png
+-     ./male0046.png
+-     ./male0047.png
+-     ./male0048.png
+-     ./male0049.png
+-     ./male0050.png
+-     ./male0051.png
+-     ./male0052.png
+-     ./male0053.png
+-     ./male0054.png
+-     ./male0055.png
+-     ./male0056.png
+-     ./male0057.png
+-     ./male0058.png
+-     ./male0059.png
+-     ./male0060.png
+-     ./male0061.png
+-     ./male0062.png
+-     ./male0063.png
+-     ./male0064.png
+-     ./male0065.png
+-     ./male0066.png
+-     ./male0067.png
+-     ./male0068.png
+-     ./male0069.png
+-     ./male0070.png
+-     ./male0071.png
+-     ./male0072.png
+-     ./male0073.png
+-     ./male0074.png
+-     ./male0075.png
+-     ./male0076.png
+-     ./male0077.png
+-     ./male0078.png
+-     ./male0079.png
+-     ./male0080.png
+-     ./male0081.png
+-     ./male0082.png
+-     ./male0083.png
+-     ./male0084.png
+-     ./male0085.png
+-     ./male0086.png
+-     ./male0087.png
+-     ./male0088.png
+-     ./male0089.png
+-     ./male0090.png
+-     ./male0091.png
+-     ./male0092.png
+-     ./male0093.png
+-     ./male0094.png
+-     ./male0095.png
+-     ./male0096.png
+-     ./male0097.png
+-     ./male0098.png
+-     ./male0099.png
+-     ./male0100.png
+-     ./male0101.png
+-     ./male0102.png
+-     ./male0103.png
+-     ./male0104.png
+-     ./male0105.png
+-     ./male0106.png
+-     ./male0107.png
+-     ./male0108.png
+-     ./male0109.png
+-     ./male0110.png
+-     ./male0111.png
+-     ./male0112.png
+-     ./male0113.png
+-     ./male0114.png
+-     ./male0115.png
+-     ./male0116.png
+-     ./male0117.png
+-     ./male0118.png
+-     ./male0119.png
+-     ./male0120.png
+-     ./male0121.png
+-     ./male0122.png
+-     ./male0123.png
+-     ./male0124.png
+-     ./male0125.png
+-     ./male0126.png
+-     ./male0127.png
+-     ./male0128.png
+-     ./male0129.png
+-     ./male0130.png
+-     ./male0131.png
+-     ./male0132.png
+-     ./male0133.png
+-     ./male0134.png
+-     ./male0135.png
+-     ./male0136.png
+-     ./male0137.png
+-     ./male0138.png
+-     ./male0139.png
+-     ./male0140.png
+-     ./male0141.png
+-     ./male0142.png
+-     ./male0143.png
+-     ./male0144.png
+-     ./male0145.png
+-     ./male0146.png
+-     ./male0147.png
+-     ./male0148.png
+-     ./male0149.png
+-     ./male0150.png
+-     ./male0151.png
+-     ./male0152.png
+-     ./male0153.png
+-     ./male0154.png
+-     ./male0155.png
+-     ./male0156.png
+-     ./male0157.png
+-     ./male0158.png
+-     ./male0159.png
+-     ./male0160.png
+-     ./male0161.png
+-     ./male0162.png
+-     ./male0163.png
+-     ./male0164.png
+-     ./male0165.png
+-     ./male0166.png
+-     ./male0167.png
+-     ./male0168.png
+-     ./male0169.png
+-     ./male0170.png
+-     ./male0171.png
+-     ./male0172.png
+-     ./male0173.png
+-     ./male0174.png
+-     ./male0175.png
+-     ./male0176.png
+-     ./male0177.png
+-     ./male0178.png
+-     ./male0179.png
+-     ./male0180.png
+-     ./male0181.png
+-     ./male0182.png
+-     ./male0183.png
+-     ./male0184.png
+-     ./male0185.png
+-     ./male0186.png
+-     ./male0187.png
+-     ./male0188.png
+-     ./male0189.png
+-     ./male0190.png
+-     ./male0191.png
+-     ./male0192.png
+-     ./male0193.png
+-     ./male0194.png
+-     ./male0195.png
+-     ./male0196.png
+-     ./male0197.png
+-     ./male0198.png
+-     ./male0199.png
+-     ./male0200.png
+-     ./male0201.png
+-     ./male0202.png
+-     ./male0203.png
+-     ./male0204.png
+-     ./male0205.png
+-     ./male0206.png
+-     ./male0207.png
+-     ./male0208.png
+-     ./male0209.png
+-     ./male0210.png
+-     ./male0211.png
+-     ./male0212.png
+-     ./male0213.png
+-     ./male0214.png
+-     ./male0215.png
+-     ./male0216.png
+-     ./male0217.png
+-     ./male0218.png
+-     ./male0219.png
+-     ./male0220.png
+-     ./male0221.png
+-     ./male0222.png
+-     ./male0223.png
+-     ./male0224.png
+-     ./male0225.png
+-     ./male0226.png
+-     ./male0227.png
+-     ./male0228.png
+-     ./male0229.png
+-     ./male0230.png
+-     ./male0231.png
+-     ./male0232.png
+-     ./male0233.png
+-     ./male0234.png
+-     ./male0235.png
+-     ./male0236.png
+-     ./male0237.png
+-     ./male0238.png
+-     ./male0239.png
+-     ./male0240.png
+-     ./male0241.png
+-     ./male0242.png
+-     ./male0243.png
+-     ./male0244.png
+-     ./male0245.png
+-     ./male0246.png
+-     ./male0247.png
+-     ./male0248.png
+-     ./male0249.png
+-     ./male0250.png
+-     ./male0251.png
+-     ./male0252.png
+-     ./male0253.png
+-     ./male0254.png
+-     ./male0255.png
+-     ./male0256.png
+-     ./male0257.png
+-     ./male0258.png
+-     ./male0259.png
+-     ./male0260.png
+-     ./male0261.png
+-     ./male0262.png
+-     ./male0263.png
+-     ./male0264.png
+-     ./male0265.png
+-     ./male0266.png
+-     ./male0267.png
+-     ./male0268.png
+-     ./male0269.png
+-     ./male0270.png
+-     ./male0271.png
+-     ./male0272.png
+-     ./male0273.png
+-     ./male0274.png
+-     ./male0275.png
+-     ./male0276.png
+-     ./male0277.png
+-     ./male0278.png
+-     ./male0279.png
+-     ./male0280.png
+-     ./male0281.png
+-     ./male0282.png
+-     ./male0283.png
+-     ./male0284.png
+-     ./male0285.png
+-     ./male0286.png
+-     ./male0287.png
+-     ./male0288.png
+-     ./male0289.png
+-     ./male0290.png
+-     ./male0291.png
+-     ./male0292.png
+-     ./male0293.png
+-     ./male0294.png
+-     ./male0295.png
+-     ./male0296.png
+-     ./male0297.png
+-     ./male0298.png
+-     ./male0299.png
+-     ./male0300.png
+- `;
+-  return data.split("\n")[index];
+-}
++    // Extract project data from DOM
++    const projectCards = document.querySelectorAll('.project-card-data');
++    const projects = [];
++    projectCards.forEach((card) => {
++      projects.push({
++        index: card.getAttribute('data-index'),
++        title: card.querySelector('h3').textContent,
++        desc: card.querySelector('p').textContent,
++        gradA: card.getAttribute('data-gradient-a') || '#ffb347',
++        gradB: card.getAttribute('data-gradient-b') || '#ff7c57',
++        tech: card.getAttribute('data-tech') || '',
++        link: card.getAttribute('data-link') || '#',
++        features: (card.getAttribute('data-features') || '').split(';')
++      });
++    });
+ 
+-const frameCount = 300;
++    if (projects.length === 0) return;
+ 
+-const images = [];
+-const imageSeq = {
+-  frame: 1,
+-};
++    // Create Scene, Camera, WebGLRenderer
++    const scene = new THREE.Scene();
++    
++    const width = container.clientWidth;
++    const height = container.clientHeight;
++    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
++    camera.position.z = 8.5;
+ 
+-for (let i = 0; i < frameCount; i++) {
+-  const img = new Image();
+-  img.src = files(i);
+-  images.push(img);
+-}
++    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
++    renderer.setSize(width, height);
++    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
++    renderer.shadowMap.enabled = true;
++    container.appendChild(renderer.domElement);
+ 
+-gsap.to(imageSeq, {
+-  frame: frameCount - 1,
+-  snap: "frame",
+-  ease: `none`,
+-  scrollTrigger: {
+-    scrub: 0.15,
+-    trigger: `#page>canvas`,
+-    start: `top top`,
+-    end: `600% top`,
+-    scroller: `#main`,
+-  },
+-  onUpdate: render,
+-});
++    // Lighting
++    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
++    scene.add(ambientLight);
+ 
+-images[1].onload = render;
++    // Spotlight that shines on the hovered card (with a nice starting off-center elevation)
++    const spotLight = new THREE.SpotLight(0xffffff, 3.2);
++    spotLight.position.set(1.5, 3.0, 10);
++    spotLight.angle = Math.PI / 4.5;
++    spotLight.penumbra = 0.85;
++    spotLight.decay = 2;
++    spotLight.distance = 20;
++    scene.add(spotLight);
+ 
+-function render() {
+-  scaleImage(images[imageSeq.frame], context);
+-}
++    // Add a soft overhead point light for ambient 3D depth
++    const dirLight = new THREE.DirectionalLight(0x38d6c7, 1.2);
++    dirLight.position.set(0, 5, 5);
++    scene.add(dirLight);
+ 
+-function scaleImage(img, ctx) {
+-  var canvas = ctx.canvas;
+-  var hRatio = canvas.width / img.width;
+-  var vRatio = canvas.height / img.height;
+-  var ratio = Math.max(hRatio, vRatio);
+-  var centerShift_x = (canvas.width - img.width * ratio) / 2;
+-  var centerShift_y = (canvas.height - img.height * ratio) / 2;
+-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+-  ctx.drawImage(
+-    img,
+-    0,
+-    0,
+-    img.width,
+-    img.height,
+-    centerShift_x,
+-    centerShift_y,
+-    img.width * ratio,
+-    img.height * ratio
+-  );
+-}
+-ScrollTrigger.create({
+-  trigger: "#page>canvas",
+-  pin: true,
+-  // markers:true,
+-  scroller: `#main`,
+-  start: `top top`,
+-  end: `600% top`,
+-});
++    // Create dynamic high-quality canvas texture for cards
++    function createCardTexture(proj) {
++      const canvas = document.createElement('canvas');
++      canvas.width = 512;
++      canvas.height = 700;
++      const ctx = canvas.getContext('2d');
++
++      // 1. Draw solid sleek dark panel background
++      ctx.fillStyle = '#060b13';
++      ctx.fillRect(0, 0, canvas.width, canvas.height);
++
++      // 2. Draw glossy gradient light source
++      const bgGrad = ctx.createRadialGradient(canvas.width/2, 0, 10, canvas.width/2, 0, canvas.height*0.8);
++      bgGrad.addColorStop(0, 'rgba(56, 214, 199, 0.15)');
++      bgGrad.addColorStop(1, 'rgba(0,0,0,0)');
++      ctx.fillStyle = bgGrad;
++      ctx.fillRect(0, 0, canvas.width, canvas.height);
++
++      // 3. Draw rounded glow borders
++      const radius = 32;
++      ctx.lineWidth = 4;
++      const borderGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
++      borderGrad.addColorStop(0, proj.gradA);
++      borderGrad.addColorStop(0.5, 'rgba(255,255,255,0.18)');
++      borderGrad.addColorStop(1, proj.gradB);
++      ctx.strokeStyle = borderGrad;
++
++      // Path for rounded rectangle
++      function drawRoundedRect(x, y, w, h, r) {
++        ctx.beginPath();
++        ctx.moveTo(x + r, y);
++        ctx.lineTo(x + w - r, y);
++        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
++        ctx.lineTo(x + w, y + h - r);
++        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
++        ctx.lineTo(x + r, y + h);
++        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
++        ctx.lineTo(x, y + r);
++        ctx.quadraticCurveTo(x, y, x + r, y);
++        ctx.closePath();
++      }
++
++      // Draw border
++      drawRoundedRect(6, 6, canvas.width - 12, canvas.height - 12, radius);
++      ctx.stroke();
++
++      // 4. Draw Accent Mesh Pattern / Visual Glass Reflection
++      ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
++      ctx.lineWidth = 1;
++      const gridSize = 40;
++      for (let i = 0; i < canvas.width; i += gridSize) {
++        ctx.beginPath();
++        ctx.moveTo(i, 0);
++        ctx.lineTo(i, canvas.height);
++        ctx.stroke();
++      }
++      for (let j = 0; j < canvas.height; j += gridSize) {
++        ctx.beginPath();
++        ctx.moveTo(0, j);
++        ctx.lineTo(canvas.width, j);
++        ctx.stroke();
++      }
++      // Add subtle circular holographic nodes at cross points
++      ctx.fillStyle = proj.gradA;
++      for (let i = gridSize * 2; i < canvas.width - gridSize; i += gridSize * 3) {
++        for (let j = gridSize * 2; j < canvas.height - gridSize; j += gridSize * 3) {
++          ctx.beginPath();
++          ctx.arc(i, j, 2, 0, Math.PI * 2);
++          ctx.fill();
++        }
++      }
++
++      // 5. Draw Glossy Diagonal Sheen
++      const sheenGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
++      sheenGrad.addColorStop(0, 'rgba(255,255,255,0)');
++      sheenGrad.addColorStop(0.3, 'rgba(255,255,255,0.015)');
++      sheenGrad.addColorStop(0.5, 'rgba(255,255,255,0.08)');
++      sheenGrad.addColorStop(0.7, 'rgba(255,255,255,0.015)');
++      sheenGrad.addColorStop(1, 'rgba(255,255,255,0)');
++      ctx.fillStyle = sheenGrad;
++      ctx.beginPath();
++      ctx.moveTo(0, 0);
++      ctx.lineTo(canvas.width, 0);
++      ctx.lineTo(canvas.width * 0.4, canvas.height);
++      ctx.lineTo(-canvas.width * 0.6, canvas.height);
++      ctx.closePath();
++      ctx.fill();
++
++      // 6. Draw Text Badge / Index
++      const badgeText = `PROJECT 0${parseInt(proj.index) + 1}`;
++      ctx.font = '900 18px Sora, sans-serif';
++      ctx.fillStyle = proj.gradA;
++      ctx.fillText(badgeText, 45, 75);
++
++      // Draw active visual thumbnail box representation
++      const cardVisGrad = ctx.createLinearGradient(45, 120, canvas.width - 45, 120);
++      cardVisGrad.addColorStop(0, proj.gradA);
++      cardVisGrad.addColorStop(1, proj.gradB);
++      ctx.fillStyle = cardVisGrad;
++      drawRoundedRect(45, 110, canvas.width - 90, 240, 20);
++      ctx.fill();
++
++      // Draw subtle logo/mesh elements inside the visual block
++      ctx.fillStyle = 'rgba(18, 13, 7, 0.18)';
++      ctx.font = '800 120px Sora, sans-serif';
++      ctx.textAlign = 'center';
++      ctx.textBaseline = 'middle';
++      ctx.fillText(`0${parseInt(proj.index) + 1}`, canvas.width / 2, 230);
++      ctx.textAlign = 'left';
++      ctx.textBaseline = 'alphabetic';
++
++      // 7. Draw Title
++      ctx.fillStyle = '#ffffff';
++      ctx.font = '700 38px Sora, sans-serif';
++      ctx.fillText(proj.title, 45, 415);
++
++      // 8. Draw Description with wrapping
++      ctx.fillStyle = 'rgba(245, 248, 255, 0.72)';
++      ctx.font = '400 21px Inter, sans-serif';
++      const words = proj.desc.split(' ');
++      let line = '';
++      let y = 465;
++      const maxWidth = canvas.width - 90;
++      const lineHeight = 30;
++
++      for (let n = 0; n < words.length; n++) {
++        const testLine = line + words[n] + ' ';
++        const metrics = ctx.measureText(testLine);
++        if (metrics.width > maxWidth && n > 0) {
++          ctx.fillText(line, 45, y);
++          line = words[n] + ' ';
++          y += lineHeight;
++        } else {
++          line = testLine;
++        }
++      }
++      ctx.fillText(line, 45, y);
++
++      // 9. Draw CTA trigger line
++      ctx.fillStyle = proj.gradA;
++      ctx.font = '600 20px Sora, sans-serif';
++      ctx.fillText('VIEW CASE STUDY ΓåÆ', 45, 620);
++
++      // Create texture
++      const texture = new THREE.CanvasTexture(canvas);
++      texture.minFilter = THREE.LinearFilter;
++      return texture;
++    }
++
++    // Array to hold our card meshes
++    const cardMeshes = [];
++    const cardGeometry = new THREE.PlaneGeometry(3.1, 4.2);
++
++    projects.forEach((proj, idx) => {
++      const texture = createCardTexture(proj);
++      // Use physical material to capture beautiful spotlight shines and specular glossiness
++      const material = new THREE.MeshPhysicalMaterial({
++        map: texture,
++        roughness: 0.35,          // Increased roughness to diffuse specular hot-spot glare
++        metalness: 0.12,          // Soft metallic sheen
++        clearcoat: 0.5,           // Reduce mirror clearcoat glare
++        clearcoatRoughness: 0.22, // Soft highlight contours
++        side: THREE.DoubleSide
++      });
++
++      const mesh = new THREE.Mesh(cardGeometry, material);
++      
++      // Starting positions (staggered in X)
++      mesh.position.x = (idx - 1) * 3.8;
++      mesh.position.z = 0;
++      mesh.userData = {
++        index: idx,
++        projData: proj,
++        baseX: (idx - 1) * 3.8,
++        targetX: (idx - 1) * 3.8,
++        targetY: 0,
++        targetZ: 0,
++        targetRotY: 0,
++        targetRotX: 0,
++        isHovered: false
++      };
++
++      scene.add(mesh);
++      cardMeshes.push(mesh);
++    });
++
++    // Tracking mouse coordinates
++    let mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
++    let isMouseOverContainer = false;
++
++    container.addEventListener('mousemove', (e) => {
++      const rect = container.getBoundingClientRect();
++      // Normalize mouse between -1 and 1
++      mouse.targetX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
++      mouse.targetY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
++      isMouseOverContainer = true;
++    });
+ 
++    container.addEventListener('mouseleave', () => {
++      mouse.targetX = 0;
++      mouse.targetY = 0;
++      isMouseOverContainer = false;
++    });
+ 
++    // Raycasting for exact hovering
++    const raycaster = new THREE.Raycaster();
++    const mouseVector = new THREE.Vector2();
+ 
+-gsap.to("#page1",{
+-  scrollTrigger:{
+-    trigger:`#page1`,
+-    start:`top top`,
+-    end:`bottom top`,
+-    pin:true,
+-    scroller:`#main`
++    // Scroll progress from ScrollTrigger
++    let scrollProgress = 0;
++    
++    // We bind the card showcase horizontal glide to scroll, pinning the wrapper when centered on screen!
++    const projectsWrapper = document.querySelector('.project-3d-wrapper');
++    if (projectsWrapper) {
++      ScrollTrigger.create({
++        trigger: projectsWrapper,
++        start: 'center center', // Pin when the center of the rounded box hits the center of the screen
++        end: '+=200%',          // Lock the cards glide for 2 full screen heights of scroll progress
++        pin: true,
++        scrub: 1.2,             // Buttery smooth inertial lag
++        anticipatePin: 1,
++        onUpdate: (self) => {
++          scrollProgress = self.progress; // ranges from 0 to 1
++        }
++      });
++    }
++
++    // Active project tracker to update overlay copy
++    let activeIndex = 0;
++    function updateOverlay(index) {
++      if (index === activeIndex) return;
++      activeIndex = index;
++
++      overlay.classList.add('transitioning');
++      
++      setTimeout(() => {
++        const activeProj = projects[activeIndex];
++        badgeEl.textContent = `0${parseInt(activeProj.index) + 1}`;
++        titleEl.textContent = activeProj.title;
++        descEl.textContent = activeProj.desc;
++        badgeEl.style.background = `linear-gradient(135deg, ${activeProj.gradA}, ${activeProj.gradB})`;
++        
++        overlay.classList.remove('transitioning');
++      }, 300);
++    }
++
++    // Set initial overlay details
++    badgeEl.textContent = `01`;
++    titleEl.textContent = projects[0].title;
++    descEl.textContent = projects[0].desc;
++    badgeEl.style.background = `linear-gradient(135deg, ${projects[0].gradA}, ${projects[0].gradB})`;
++
++    // Modal Control System
++    const modal = document.getElementById('project-details-modal');
++    const modalBackdrop = document.getElementById('modal-backdrop');
++    const modalCloseBtn = document.getElementById('project-modal-close-btn');
++    const modalCloseAction = document.getElementById('project-modal-close-action');
++    const modalHeaderGrad = document.getElementById('modal-header-gradient');
++    const modalBadge = document.getElementById('modal-badge');
++    const modalTitle = document.getElementById('modal-title');
++    const modalDesc = document.getElementById('modal-desc');
++    const modalFeatures = document.getElementById('modal-features');
++    const modalTech = document.getElementById('modal-tech');
++    const modalGallery = document.getElementById('modal-gallery');
++    const modalActionBtn = document.getElementById('modal-action-btn');
++    const detailsTrigger = document.getElementById('view-details-trigger');
++
++    function openProjectModal(index) {
++      const proj = projects[index];
++      if (!proj || !modal) return;
++
++      modalBadge.textContent = `Project 0${parseInt(proj.index) + 1}`;
++      modalTitle.textContent = proj.title;
++      modalDesc.textContent = proj.desc;
++      
++      modalHeaderGrad.style.background = `linear-gradient(135deg, ${proj.gradA}, ${proj.gradB})`;
++      modalBadge.style.boxShadow = `0 0 15px ${proj.gradA}`;
++
++      // Populate Visual Gallery Showcase
++      if (modalGallery) {
++        modalGallery.innerHTML = '';
++        const idxVal = parseInt(proj.index);
++
++        if (idxVal === 0) {
++          // Live portfolio interactive iframe
++          const iframe = document.createElement('iframe');
++          iframe.src = 'https://akshattermux.github.io/Akshat-Sharma/';
++          iframe.width = '100%';
++          iframe.height = '240';
++          iframe.frameBorder = '0';
++          iframe.style.background = '#0d1421';
++          iframe.style.borderRadius = '12px';
++          iframe.style.border = '1px solid rgba(0, 255, 247, 0.2)';
++          iframe.style.boxShadow = `0 0 24px rgba(0, 255, 247, 0.15)`;
++          iframe.allowFullscreen = true;
++          modalGallery.appendChild(iframe);
++        } else {
++          // Screenshot slides with fallbacks
++          const screenshotData = {
++            1: {
++              srcs: ['img/work1.jpg', 'img/Projects/one.jpg'],
++              falls: [
++                'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&auto=format&fit=crop&q=80',
++                'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&auto=format&fit=crop&q=80'
++              ]
++            },
++            2: {
++              srcs: ['img/work2.jpg', 'img/Projects/two.jpg'],
++              falls: [
++                'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=600&auto=format&fit=crop&q=80',
++                'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=600&auto=format&fit=crop&q=80'
++              ]
++            },
++            3: {
++              srcs: ['img/Projects/three1.jpg', 'img/Projects/three.jpg'],
++              falls: [
++                'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=600&auto=format&fit=crop&q=80',
++                'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80'
++              ]
++            },
++            4: {
++              srcs: ['img/work4.jpg', 'img/Projects/Four.jpg'],
++              falls: [
++                'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&auto=format&fit=crop&q=80',
++                'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=600&auto=format&fit=crop&q=80'
++              ]
++            },
++            5: {
++              srcs: ['img/work5.jpg', 'img/Projects/Five.jpg'],
++              falls: [
++                'https://images.unsplash.com/photo-1592210454359-9043f067919b?w=600&auto=format&fit=crop&q=80',
++                'https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?w=600&auto=format&fit=crop&q=80'
++              ]
++            },
++            6: {
++              srcs: ['img/work6.jpg', 'img/Projects/six.jpg'],
++              falls: [
++                'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?w=600&auto=format&fit=crop&q=80',
++                'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80'
++              ]
++            },
++            7: {
++              srcs: ['img/work7.png', 'img/Projects/seven.png'],
++              falls: [
++                'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&auto=format&fit=crop&q=80',
++                'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&auto=format&fit=crop&q=80'
++              ]
++            },
++            8: {
++              srcs: ['img/work8.jpg', 'img/Projects/eight-1.jpg'],
++              falls: [
++                'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=600&auto=format&fit=crop&q=80',
++                'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop&q=80'
++              ]
++            }
++          };
++
++          const pData = screenshotData[idxVal];
++          if (pData) {
++            pData.srcs.forEach((src, sIdx) => {
++              const img = document.createElement('img');
++              img.src = src;
++              img.alt = `${proj.title} Screen ${sIdx + 1}`;
++              img.onerror = function() {
++                this.onerror = null;
++                this.src = pData.falls[sIdx];
++              };
++              modalGallery.appendChild(img);
++            });
++          }
++        }
++      }
++      
++      modalFeatures.innerHTML = '';
++      proj.features.forEach((feat) => {
++        if (!feat.trim()) return;
++        const li = document.createElement('li');
++        li.textContent = feat;
++        modalFeatures.appendChild(li);
++      });
++
++      modalTech.innerHTML = '';
++      const tags = proj.tech.split(',');
++      tags.forEach((tag) => {
++        if (!tag.trim()) return;
++        const span = document.createElement('span');
++        span.className = 'tech-tag';
++        span.textContent = tag.trim();
++        modalTech.appendChild(span);
++      });
++
++      // Clear old extra buttons if any
++      const existingExtraBtn = document.getElementById('modal-action-btn-extra');
++      if (existingExtraBtn) {
++        existingExtraBtn.remove();
++      }
++
++      modalActionBtn.href = proj.link;
++      modalActionBtn.textContent = 'Open Project Normally Γåù';
++      modalActionBtn.style.display = 'inline-block';
++
++      // Check if it's FriendsBook (index 8) to show web and app buttons
++      if (parseInt(proj.index) === 8) {
++        modalActionBtn.textContent = 'Launch Web Platform Γåù';
++        
++        // Add App Store/Play Store action button
++        const appBtn = document.createElement('a');
++        appBtn.id = 'modal-action-btn-extra';
++        appBtn.href = 'https://play.google.com/store/apps/details?id=com.friendsbook.auth';
++        appBtn.target = '_blank';
++        appBtn.className = 'button primary';
++        appBtn.style.background = 'linear-gradient(135deg, #a78bfa, #7c3aed)';
++        appBtn.style.boxShadow = '0 0 15px rgba(167, 139, 250, 0.4)';
++        appBtn.style.display = 'inline-block';
++        appBtn.innerHTML = '<span style="display:flex; align-items:center; gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; fill:#fff;"><path d="M17.523 15.3414L20.655 20.7675C21.009 21.3813 20.799 22.1648 20.1855 22.5188C19.572 22.8728 18.7885 22.6628 18.4345 22.0493L15.2535 16.5383C12.9845 17.5028 10.4285 17.3828 8.27148 16.2023L5.05948 21.7658C4.70848 22.3813 3.92648 22.5958 3.31098 22.2448C2.69548 21.8938 2.48098 21.1118 2.83198 20.4963L6.08298 14.8658C2.96948 12.5693 1.05448 8.84777 1.00048 4.67277H23.0005C22.9465 8.84777 21.0315 12.5693 17.523 15.3414ZM7.00048 8.17277C7.00048 8.72505 7.4482 9.17277 8.00048 9.17277C8.55276 9.17277 9.00048 8.72505 9.00048 8.17277C9.00048 7.62048 8.55276 7.17277 8.00048 7.17277C7.4482 7.17277 7.00048 7.62048 7.00048 8.17277ZM15.0005 8.17277C15.0005 8.72505 15.4482 9.17277 16.0005 9.17277C16.5528 9.17277 17.0005 8.72505 17.0005 8.17277C17.0005 7.62048 16.5528 7.17277 16.0005 7.17277C15.4482 7.17277 15.0005 7.62048 15.0005 8.17277Z"/></svg>Get Android App Γåù</span>';
++        
++        const modalActions = document.querySelector('.project-modal-actions');
++        if (modalActions && modalCloseAction) {
++          modalActions.insertBefore(appBtn, modalCloseAction);
++        }
++      }
++
++      modal.classList.add('active');
++      
++      gsap.fromTo('.project-modal-card', 
++        { scale: 0.88, opacity: 0, y: 30 },
++        { scale: 1, opacity: 1, y: 0, duration: 0.45, ease: 'back.out(1.4)' }
++      );
++    }
++    window.openProjectModal = openProjectModal;
++
++    function closeProjectModal() {
++      if (!modal) return;
++      gsap.to('.project-modal-card', {
++        scale: 0.9,
++        opacity: 0,
++        y: 20,
++        duration: 0.25,
++        ease: 'power2.in',
++        onComplete: () => {
++          modal.classList.remove('active');
++        }
++      });
++    }
++
++    if (detailsTrigger) {
++      detailsTrigger.addEventListener('click', () => {
++        openProjectModal(activeIndex);
++      });
++    }
++
++    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeProjectModal);
++    if (modalCloseAction) modalCloseAction.addEventListener('click', closeProjectModal);
++    if (modalBackdrop) modalBackdrop.addEventListener('click', closeProjectModal);
++
++    // Resize Handler
++    function handleResize() {
++      const w = container.clientWidth;
++      const h = container.clientHeight;
++      
++      camera.aspect = w / h;
++      camera.updateProjectionMatrix();
++      
++      renderer.setSize(w, h);
++      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
++
++      // Adjust camera distance dynamically based on width and aspect ratio to ensure cards are huge and never cut off!
++      const aspect = w / h;
++      if (w < 600) {
++        camera.position.z = 9.5;
++      } else if (w < 900) {
++        camera.position.z = 8.5;
++      } else {
++        // Dynamic cap: if aspect is high (short/wide screen), decrease Z to bring cards closer and larger!
++        camera.position.z = Math.max(5.8, Math.min(8.5, 8.5 - (aspect - 1.7) * 1.3));
++      }
++    }
++    window.addEventListener('resize', handleResize);
++    handleResize(); // Initial call
++
++    // Click handler to select and highlight projects
++    container.addEventListener('click', (e) => {
++      const rect = container.getBoundingClientRect();
++      mouseVector.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
++      mouseVector.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
++
++      raycaster.setFromCamera(mouseVector, camera);
++      const intersects = raycaster.intersectObjects(cardMeshes);
++
++      if (intersects.length > 0) {
++        const clickedMesh = intersects[0].object;
++        const index = clickedMesh.userData.index;
++        updateOverlay(index);
++
++        // Highlight jump effect
++        gsap.to(clickedMesh.position, {
++          z: 1.2,
++          duration: 0.3,
++          yoyo: true,
++          repeat: 1,
++          ease: 'power2.out',
++          onComplete: () => {
++            openProjectModal(index);
++          }
++        });
++      }
++    });
++
++    const clock = new THREE.Clock();
++
++    // Animation Render Loop
++    function animate() {
++      requestAnimationFrame(animate);
++
++      const time = clock.getElapsedTime();
++
++      // Lerp mouse coordinates for maximum butter-smooth movement
++      mouse.x += (mouse.targetX - mouse.x) * 0.1;
++      mouse.y += (mouse.targetY - mouse.y) * 0.1;
++
++      // Spotlight follows mouse with an elegant diagonal offset to prevent direct specular hot-spot burns on text
++      spotLight.position.x = mouse.x * 6 + 1.2;
++      spotLight.position.y = mouse.y * 4 + 2.5;
++
++      // Cover Flow spacing & slide calculations based on Scroll Progress
++      // Scroll moves the cards from right to left
++      // We map scrollProgress (0 to 1) to horizontal displacement offset
++      // Dynamically scale based on the actual number of projects loaded
++      const targetScrollOffset = scrollProgress * (projects.length - 1);
++      
++      // Determine which card is currently closest to the center
++      const currentActiveIndex = Math.max(0, Math.min(projects.length - 1, Math.round(targetScrollOffset)));
++      updateOverlay(currentActiveIndex);
++
++      // Raycast testing for card hover
++      mouseVector.x = mouse.x;
++      mouseVector.y = mouse.y;
++      raycaster.setFromCamera(mouseVector, camera);
++      const intersects = raycaster.intersectObjects(cardMeshes);
++      let hoveredIndex = -1;
++      if (intersects.length > 0 && isMouseOverContainer) {
++        hoveredIndex = intersects[0].object.userData.index;
++      }
++
++      cardMeshes.forEach((mesh, idx) => {
++        const data = mesh.userData;
++        const isHovered = (idx === hoveredIndex);
++        data.isHovered = isHovered;
++
++        // Cover Flow math!
++        // Calculate displacement from centered position
++        const activeOffset = idx - targetScrollOffset; // 0 when card is exactly centered
++        
++        // 1. Target Position X
++        // Centered card stays in middle, side cards slide away to give space
++        let posX = activeOffset * 3.5;
++        if (activeOffset > 0.1) {
++          posX += 0.5; // push right cards further right
++        } else if (activeOffset < -0.1) {
++          posX -= 0.5; // push left cards further left
++        }
++        data.targetX = posX;
++
++        // 2. Target Position Z & Rotation Y
++        // Centered card stands in front, side cards fall back and rotate inward (Apple Cover Flow!)
++        if (Math.abs(activeOffset) < 0.1) {
++          data.targetZ = isHovered ? 1.0 : 0.4;
++          data.targetRotY = 0;
++          data.targetRotX = isHovered ? mouse.y * 0.15 : 0;
++        } else {
++          data.targetZ = -1.2;
++          // Rotate cards on left outward, right inward
++          data.targetRotY = activeOffset > 0 ? -Math.PI / 4.2 : Math.PI / 4.2;
++          data.targetRotX = 0;
++        }
++
++        // Add soft interactive floating wave so the 3D scene feels organic
++        const floatAnim = Math.sin(time * 1.5 + idx * 2.0) * 0.08;
++        
++        // Lerp positions & rotations for fluid motion physics
++        mesh.position.x += (data.targetX - mesh.position.x) * 0.09;
++        mesh.position.y += (data.targetY + floatAnim + (isHovered ? mouse.y * 0.25 : 0) - mesh.position.y) * 0.09;
++        mesh.position.z += (data.targetZ - mesh.position.z) * 0.09;
++
++        // Rotations
++        mesh.rotation.y += (data.targetRotY + (isHovered ? mouse.x * 0.25 : 0) - mesh.rotation.y) * 0.09;
++        mesh.rotation.x += (data.targetRotX - mesh.rotation.x) * 0.09;
++        mesh.rotation.z += ((isHovered ? -mouse.x * 0.08 : 0) - mesh.rotation.z) * 0.09;
++
++        // Scale up on hover
++        const targetScale = isHovered ? 1.08 : 1.0;
++        mesh.scale.x += (targetScale - mesh.scale.x) * 0.12;
++        mesh.scale.y += (targetScale - mesh.scale.y) * 0.12;
++        mesh.scale.z += (targetScale - mesh.scale.z) * 0.12;
++      });
++
++      renderer.render(scene, camera);
++    }
++
++    animate();
+   }
+-})
+-gsap.to("#page2",{
+-  scrollTrigger:{
+-    trigger:`#page2`,
+-    start:`top top`,
+-    end:`bottom top`,
+-    pin:true,
+-    scroller:`#main`
++
++  // Initialize Three.js Projects Showcase
++  init3DProjects();
++
++  // --- Interactive Retro CLI Terminal Engine (AkshatOS) ---
++  const terminalOverlay = document.getElementById('terminal-overlay');
++  const terminalTrigger = document.getElementById('terminal-trigger');
++  const terminalCloseX = document.getElementById('terminal-close-x');
++  const terminalInput = document.getElementById('terminal-input');
++  const terminalOutput = document.getElementById('terminal-output');
++  const terminalBody = document.getElementById('terminal-body');
++  const matrixCanvas = document.getElementById('matrix-canvas');
++  const matrixHint = document.getElementById('matrix-exit-hint');
++  
++  let isTerminalOpen = false;
++  let commandHistory = [];
++  let historyIndex = -1;
++  const pageStartTime = performance.now();
++  let hasBooted = false;
++
++  function bootSequence() {
++    hasBooted = true;
++    terminalInput.disabled = true;
++    terminalOutput.innerHTML = '';
++    
++    const bootLines = [
++      { text: '[   0.000000] Booting AkshatOS Kernel v1.8.2-LTS...', type: 'welcome-msg' },
++      { text: '[   0.082491] Syncing active project assets... DONE', type: 'term-success' },
++      { text: '[   0.210928] Establishing 3D Cover Flow coordinates... ACTIVE', type: 'term-info' },
++      { text: '[   0.345021] Mounting creative telemetry nodes... OK', type: 'term-success' },
++      { text: '[   0.491290] Bypassing secure firewall environment... BYPASSED', type: 'term-highlight' },
++      { text: '<br>Welcome Akshat Sharma! AkshatOS Terminal Console Ready.<br>Type <span class="term-highlight">help</span> to view active system directives.<br>', type: 'welcome-msg' }
++    ];
++
++    let currentLine = 0;
++    
++    function printNextBootLine() {
++      if (currentLine < bootLines.length) {
++        printLine(bootLines[currentLine].text, bootLines[currentLine].type);
++        currentLine++;
++        setTimeout(printNextBootLine, 75); // fast typing cadence
++      } else {
++        terminalInput.disabled = false;
++        terminalInput.focus();
++      }
++    }
++    
++    printNextBootLine();
+   }
+-})
+-gsap.to("#page3",{
+-  scrollTrigger:{
+-    trigger:`#page3`,
+-    start:`top top`,
+-    end:`bottom top`,
+-    pin:true,
+-    scroller:`#main`
++
++  function toggleTerminal() {
++    isTerminalOpen = !isTerminalOpen;
++    if (isTerminalOpen) {
++      terminalOverlay.classList.add('active');
++      if (lenisInstance) lenisInstance.stop(); // Stop scroll when terminal is active
++      
++      if (!hasBooted) {
++        setTimeout(bootSequence, 180);
++      } else {
++        setTimeout(() => terminalInput.focus(), 150);
++      }
++      showToast('Session established. AkshatOS Console loaded.', 'info');
++    } else {
++      terminalOverlay.classList.remove('active');
++      if (lenisInstance) lenisInstance.start(); // Resume scroll
++      terminalInput.blur();
++      stopMatrix();
++    }
++  }
++
++  if (terminalTrigger) terminalTrigger.addEventListener('click', toggleTerminal);
++  if (terminalCloseX) terminalCloseX.addEventListener('click', () => toggleTerminal());
++  
++  // Close overlay on clicking backdrop (except clicking the terminal window itself)
++  terminalOverlay.addEventListener('click', (e) => {
++    if (e.target === terminalOverlay) {
++      toggleTerminal();
++    }
++  });
++
++  // Clicking anywhere inside terminal container focuses the input box
++  const terminalContainer = document.querySelector('.terminal-container');
++  if (terminalContainer) {
++    terminalContainer.addEventListener('click', (e) => {
++      // Don't focus if selecting text or clicking a link
++      if (window.getSelection().toString() === '' && !e.target.classList.contains('term-link-item')) {
++        terminalInput.focus();
++      }
++    });
+   }
+-})
+\ No newline at end of file
++
++  // Trap backtick ` key for toggle, and ESC key for exit
++  window.addEventListener('keydown', (e) => {
++    if (e.key === '`') {
++      e.preventDefault();
++      toggleTerminal();
++    } else if (e.key === 'Escape') {
++      if (matrixCanvas.style.display === 'block') {
++        stopMatrix();
++      } else if (isTerminalOpen) {
++        toggleTerminal();
++      }
++    }
++  });
++
++  // Terminal Input Handling
++  if (terminalInput) {
++    terminalInput.addEventListener('keydown', (e) => {
++      if (e.key === 'Enter') {
++        const fullInput = terminalInput.value;
++        const trimmedInput = fullInput.trim();
++        
++        if (trimmedInput !== '') {
++          commandHistory.push(trimmedInput);
++          historyIndex = commandHistory.length;
++        }
++
++        // Print input line in exact premium powerline prompt style
++        printLine(`<span class="prompt-arrow">Γ₧£</span> <span class="prompt-dir">~</span> <span class="prompt-user">[akshat.os]</span> <span class="prompt-char">ΓÇ║</span> ${fullInput}`);
++        
++        // Execute Command
++        executeCommand(trimmedInput);
++        
++        terminalInput.value = '';
++        terminalBody.scrollTop = terminalBody.scrollHeight;
++      } 
++      else if (e.key === 'ArrowUp') {
++        e.preventDefault();
++        if (commandHistory.length > 0 && historyIndex > 0) {
++          historyIndex--;
++          terminalInput.value = commandHistory[historyIndex];
++        }
++      } 
++      else if (e.key === 'ArrowDown') {
++        e.preventDefault();
++        if (commandHistory.length > 0 && historyIndex < commandHistory.length - 1) {
++          historyIndex++;
++          terminalInput.value = commandHistory[historyIndex];
++        } else if (historyIndex === commandHistory.length - 1) {
++          historyIndex = commandHistory.length;
++          terminalInput.value = '';
++        }
++      }
++    });
++  }
++
++  function printLine(text, type = '') {
++    const p = document.createElement('p');
++    p.className = `term-line ${type}`;
++    p.innerHTML = text;
++    terminalOutput.appendChild(p);
++    terminalBody.scrollTop = terminalBody.scrollHeight;
++  }
++
++  // Project data reference from init3DProjects
++  let parsedProjects = [];
++  try {
++    const projectCards = document.querySelectorAll('.project-card-data');
++    projectCards.forEach((card) => {
++      parsedProjects.push({
++        index: card.getAttribute('data-index'),
++        title: card.querySelector('h3').textContent,
++        link: card.getAttribute('data-link') || '#',
++      });
++    });
++  } catch (err) {
++    console.error('Failed to parse projects for terminal:', err);
++  }
++
++  function executeCommand(cmd) {
++    const parts = cmd.toLowerCase().split(' ');
++    const command = parts[0];
++    const args = parts.slice(1);
++
++    if (command === '') return;
++
++    switch (command) {
++      case 'help':
++        printLine('Available Terminal Commands:', 'term-highlight');
++        printLine('  <span class="term-info">about</span>    - Print developer information & bio');
++        printLine('  <span class="term-info">projects</span> - Access selected project directories');
++        printLine('  <span class="term-info">timeline</span> - Display execution roadmap / operational process');
++        printLine('  <span class="term-info">contact</span>  - Display encrypted communications paths');
++        printLine('  <span class="term-info">neofetch</span> - Render systems capability and kernel telemetry');
++        printLine('  <span class="term-info">matrix</span>   - Initialize cyber decryption streams');
++        printLine('  <span class="term-info">hack</span>     - Equivalent to matrix command');
++        printLine('  <span class="term-info">clear</span>    - Clear console buffers');
++        printLine('  <span class="term-info">exit</span>     - Terminate terminal session');
++        break;
++
++      case 'about':
++        printLine('System Profile: Akshat Sharma', 'term-highlight');
++        printLine('--------------------------------------------');
++        printLine('I am a BCA passout creative developer with a deep structural command over both hardware and software systems.');
++        printLine('I bridge the gap between physical hardware telemetry and immersive web animations, marrying robust programming architectures with futuristic aesthetics.');
++        printLine('My focus lies in detailed layout compositions, elastic scroll pacing, and custom canvas render engines.');
++        break;
++
++      case 'projects':
++        printLine('Index of Operational Deliverables:', 'term-highlight');
++        printLine('--------------------------------------------');
++        if (parsedProjects.length === 0) {
++          printLine('No projects registered in directory cache.');
++        } else {
++          printLine('Click an item to examine case studies directly:');
++          parsedProjects.forEach((proj, idx) => {
++            const num = String(idx + 1).padStart(2, '0');
++            printLine(`  [${num}] <span class="term-link-item" onclick="window.terminalActionTrigger(${idx})">${proj.title}</span>`);
++          });
++        }
++        break;
++
++      case 'timeline':
++        printLine('Operational Roadmap Sequence:', 'term-highlight');
++        printLine('--------------------------------------------');
++        printLine('  [Phase 01: Direction] ΓöÇΓöÇΓû║ Visual tone, grid framework setup, flow design.');
++        printLine('  [Phase 02: Build]     ΓöÇΓöÇΓû║ Canvas buffer loops, Three.js layout grids, GSAP binding.');
++        printLine('  [Phase 03: Delivery]  ΓöÇΓöÇΓû║ Cache validation, telemetry streams, final pass.');
++        break;
++
++      case 'contact':
++        printLine('Secure Communication Telemetry:', 'term-highlight');
++        printLine('--------------------------------------------');
++        printLine('  Email : <a href="mailto:akshatsharma5645@gmail.com" class="term-link-item" target="_blank">akshatsharma5645@gmail.com</a>');
++        printLine('  Phone : <a href="tel:+918979995507" class="term-link-item">+91 89799 95507</a>');
++        printLine('  Loc   : Rampur Maniharan, Saharanpur, UP - 247451');
++        break;
++
++      case 'clear':
++        terminalOutput.innerHTML = '';
++        break;
++
++      case 'exit':
++        toggleTerminal();
++        break;
++
++      case 'neofetch':
++        printNeofetch();
++        break;
++
++      case 'matrix':
++      case 'hack':
++        printLine('Initializing decrypt streams...', 'term-success');
++        setTimeout(() => startMatrix(), 400);
++        break;
++
++      default:
++        printLine(`bash: command not found: ${command}. Type <span class="term-highlight">help</span> for guidelines.`, 'term-line');
++    }
++  }
++
++  // Expose link trigger function globally to connect terminal link to openThreeJS modal
++  window.terminalActionTrigger = function(index) {
++    toggleTerminal(); // Close terminal
++    setTimeout(() => {
++      // Find case study details trigger in page
++      const modal = document.getElementById('project-details-modal');
++      if (modal && typeof window.openProjectModal === 'function') {
++        window.openProjectModal(index);
++      } else {
++        // Fallback: trigger page scroll to projects section
++        const projSection = document.getElementById('projects');
++        if (projSection) {
++          projSection.scrollIntoView({ behavior: 'smooth' });
++        }
++      }
++    }, 300);
++  };
++
++  function printNeofetch() {
++    const uptimeMs = performance.now() - pageStartTime;
++    const uptimeSec = Math.floor(uptimeMs / 1000);
++    const uptimeMin = Math.floor(uptimeSec / 60);
++    const uptimeStr = uptimeMin > 0 ? `${uptimeMin} mins, ${uptimeSec % 60} secs` : `${uptimeSec} secs`;
++
++    const asciiLogo = `
++     _  _  _   _ 
++    |_||_||_ |  |
++    | || ||_ |  |
++   
++   AKSHAT SHARMA
++    `;
++
++    const screenWidth = window.innerWidth;
++    const screenHeight = window.innerHeight;
++
++    const infoHTML = `
++      <div class="neofetch-grid">
++        <div class="neofetch-logo">${asciiLogo}</div>
++        <div class="neofetch-info">
++          <div><span class="term-highlight">akshat</span>@<span class="term-highlight">akshatos</span></div>
++          <div>-------------------------</div>
++          <div><strong>OS</strong>: AkshatOS v1.8.2-LTS x86_64</div>
++          <div><strong>Host</strong>: Creative Developer Portfolio Node</div>
++          <div><strong>Kernel</strong>: 5.15.0-akshattermux-creative</div>
++          <div><strong>Uptime</strong>: ${uptimeStr}</div>
++          <div><strong>Shell</strong>: bash-termux v5.1.16</div>
++          <div><strong>Resolution</strong>: ${screenWidth}x${screenHeight}</div>
++          <div><strong>DE</strong>: ThreeJS WebGL Engine</div>
++          <div><strong>WM</strong>: GSAP ScrollTrigger Window Manager</div>
++          <div><strong>CPU</strong>: PyTorch Cognitive Agent & ML Layer</div>
++          <div><strong>GPU</strong>: Custom Canvas 2D Sequence Engine</div>
++          <div><strong>Memory</strong>: 100% Polish Architecture</div>
++          <div><strong>Telemetry Node</strong>: ESP32 WiFi Servo Radar Core</div>
++        </div>
++      </div>
++    `;
++    printLine(infoHTML);
++  }
++
++  // --- Matrix Canvas Rain Animation Stream ---
++  let matrixInterval = null;
++  let matrixContext = null;
++  let matrixColumns = [];
++  let matrixFontSize = 14;
++
++  function startMatrix() {
++    // Hide visual details temporarily
++    terminalOverlay.style.opacity = '0';
++    matrixCanvas.style.display = 'block';
++    matrixHint.style.display = 'block';
++
++    const resizeCanvas = () => {
++      matrixCanvas.width = window.innerWidth;
++      matrixCanvas.height = window.innerHeight;
++      
++      const colsCount = Math.floor(matrixCanvas.width / matrixFontSize) + 1;
++      matrixColumns = [];
++      for (let i = 0; i < colsCount; i++) {
++        matrixColumns.push(Math.random() * -100); // Random offset above view
++      }
++    };
++
++    matrixContext = matrixCanvas.getContext('2d');
++    resizeCanvas();
++    window.addEventListener('resize', resizeCanvas);
++
++    // Character set: numbers + letters + katakana
++    const charList = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZπéóπéñπéªπé¿πé¬πé½πé¡πé»πé▒πé│πé╡πé╖πé╣πé╗πé╜πé┐πâüπâäπâåπâêπâèπâïπâîπâìπâÄπâÅπâÆπâòπâÿπâ¢πâ₧πâƒπâáπâíπâóπâñπâªπâ¿πâ⌐πâ¬πâ½πâ¼πâ¡πâ»πâ▓πâ│".split("");
++
++    function drawRain() {
++      matrixContext.fillStyle = 'rgba(0, 0, 0, 0.05)';
++      matrixContext.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
++
++      matrixContext.fillStyle = '#0f0';
++      matrixContext.font = `bold ${matrixFontSize}px monospace`;
++      matrixContext.shadowColor = '#0f0';
++      matrixContext.shadowBlur = 8;
++
++      matrixColumns.forEach((y, x) => {
++        const char = charList[Math.floor(Math.random() * charList.length)];
++        const xPos = x * matrixFontSize;
++        const yPos = y * matrixFontSize;
++
++        // Draw character
++        matrixContext.fillText(char, xPos, yPos);
++
++        // Reset if offscreen or random trigger
++        if (yPos > matrixCanvas.height && Math.random() > 0.975) {
++          matrixColumns[x] = 0;
++        } else {
++          matrixColumns[x]++;
++        }
++      });
++      matrixContext.shadowBlur = 0; // Reset blur
++    }
++
++    matrixInterval = setInterval(drawRain, 33); // ~30 FPS
++
++    // Cancel click handler
++    matrixCanvas.addEventListener('click', stopMatrix, { once: true });
++  }
++
++  function stopMatrix() {
++    if (matrixInterval) {
++      clearInterval(matrixInterval);
++      matrixInterval = null;
++    }
++    matrixCanvas.style.display = 'none';
++    matrixHint.style.display = 'none';
++    
++    // Fade terminal back in
++    if (isTerminalOpen) {
++      terminalOverlay.style.opacity = '1';
++      terminalInput.focus();
++    }
++  }
++
++  // Scroll reveal animations
++  const revealTargets = gsap.utils.toArray('.glass-card, .project-3d-wrapper, .timeline-item, .quote-card, .about-copy, .stats-grid article, .contact-copy, .contact-form');
++  revealTargets.forEach((element) => {
++    gsap.from(element, {
++      opacity: 0,
++      y: 28,
++      duration: 0.8,
++      ease: 'power2.out',
++      scrollTrigger: {
++        trigger: element,
++        start: 'top 88%',
++        end: 'top 70%'
++      }
++    });
++  });
++});
++
++// Custom Toast Notification System
++function showToast(message, type = 'success') {
++  let container = document.querySelector('.toast-container');
++  if (!container) {
++    container = document.createElement('div');
++    container.className = 'toast-container';
++    document.body.appendChild(container);
++  }
++
++  const toast = document.createElement('div');
++  toast.className = `custom-toast ${type}`;
++  toast.textContent = message;
++
++  container.appendChild(toast);
++
++  // Trigger animate in
++  requestAnimationFrame(() => {
++    toast.classList.add('active');
++  });
++
++  // Auto remove after 4 seconds
++  setTimeout(() => {
++    toast.classList.remove('active');
++    toast.addEventListener('transitionend', () => {
++      toast.remove();
++    });
++  }, 4000);
++}
